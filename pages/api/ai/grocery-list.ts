@@ -118,7 +118,7 @@ Include 25-35 items covering all major food groups appropriate for the diet pref
         'content-type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
+        model: 'claude-3-5-sonnet-20241022',
         max_tokens: 2048,
         messages: [{ role: 'user', content: prompt }],
       }),

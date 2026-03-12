@@ -99,7 +99,7 @@ Guidelines:
         'content-type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
+        model: 'claude-3-5-sonnet-20241022',
         max_tokens: 1024,
         system: systemPrompt,
         messages: messages.map((m) => ({ role: m.role, content: m.content })),
@@ -109,7 +109,12 @@ Guidelines:
     if (!response.ok) {
       const errorText = await response.text()
       console.error('Anthropic API error:', errorText)
-      return res.status(502).json({ error: 'AI service error. Please try again.' })
+      let userMsg = 'AI service error. Please try again.'
+      try {
+        const errJson = JSON.parse(errorText)
+        if (errJson?.error?.message) userMsg = errJson.error.message
+      } catch { /* ignore */ }
+      return res.status(502).json({ error: userMsg })
     }
 
     const data = await response.json() as { content: Array<{ type: string; text: string }> }
