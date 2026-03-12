@@ -5,15 +5,23 @@ import { supabase } from '@/lib/supabase'
 import {
   LayoutDashboard, User, MessageCircle, ClipboardList,
   TrendingUp, Settings, LogOut, Leaf, Bell, ShieldCheck,
+  Camera, Bot, ShoppingCart, Scan,
 } from 'lucide-react'
 
 const NAV = [
-  { href: '/dashboard',  icon: LayoutDashboard, label: 'Dashboard' },
-  { href: '/checkin',    icon: ClipboardList,    label: 'Meal Check-in' },
-  { href: '/progress',   icon: TrendingUp,       label: 'Progress' },
-  { href: '/whatsapp',   icon: MessageCircle,    label: 'WhatsApp' },
-  { href: '/reminders',  icon: Bell,             label: 'Reminders' },
-  { href: '/profile',    icon: User,             label: 'Profile' },
+  { href: '/dashboard',       icon: LayoutDashboard, label: 'Dashboard' },
+  { href: '/checkin',         icon: ClipboardList,   label: 'Meal Check-in' },
+  { href: '/progress',        icon: TrendingUp,      label: 'Progress' },
+  { href: '/whatsapp',        icon: MessageCircle,   label: 'WhatsApp' },
+  { href: '/reminders',       icon: Bell,            label: 'Reminders' },
+  { href: '/profile',         icon: User,            label: 'Profile' },
+]
+
+const AI_NAV = [
+  { href: '/meal-scanner',    icon: Camera,          label: 'AI Meal Scanner' },
+  { href: '/ai-chat',         icon: Bot,             label: 'AI Nutritionist' },
+  { href: '/grocery-list',    icon: ShoppingCart,    label: 'Grocery List' },
+  { href: '/barcode-scanner', icon: Scan,            label: 'Barcode Scanner' },
 ]
 
 interface SidebarProps {
@@ -43,6 +51,29 @@ export default function Sidebar({ isAdmin, user }: SidebarProps) {
       <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5">
         {NAV.map(({ href, icon: Icon, label }) => {
           const active = router.pathname === href || router.pathname.startsWith(href + '/')
+          return (
+            <Link
+              key={href}
+              href={href}
+              className={cn(
+                'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors duration-150',
+                active
+                  ? 'text-green-700 bg-green-50'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              )}
+            >
+              <Icon size={18} className={active ? 'text-green-600' : 'text-gray-400'} />
+              {label}
+            </Link>
+          )
+        })}
+
+        {/* AI Features section */}
+        <div className="pt-3 pb-1 px-3">
+          <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">AI Features</p>
+        </div>
+        {AI_NAV.map(({ href, icon: Icon, label }) => {
+          const active = router.pathname === href
           return (
             <Link
               key={href}
