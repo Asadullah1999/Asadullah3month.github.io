@@ -23,9 +23,9 @@ export default async function handler(
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const apiKey = process.env.GEMINI_API_KEY
+  const apiKey = process.env.GROQ_API_KEY
   if (!apiKey) {
-    return res.status(500).json({ error: 'AI service not configured. Please add GEMINI_API_KEY.' })
+    return res.status(500).json({ error: 'AI service not configured. Please add GROQ_API_KEY.' })
   }
 
   const { userId } = req.body as { userId?: string }
@@ -103,28 +103,30 @@ Respond ONLY with valid JSON in this exact format:
 Include 25-35 items covering all major food groups appropriate for the diet preference.`
 
   try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { maxOutputTokens: 2048, temperature: 0.4 },
-        }),
-      }
-    )
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'authorization': `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: 'llama-3.1-8b-instant',
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: 2048,
+        temperature: 0.4,
+      }),
+    })
 
     if (!response.ok) {
       const errorText = await response.text()
-      console.error('Gemini API error:', errorText)
+      console.error('Groq API error:', errorText)
       return res.status(502).json({ error: 'AI service error. Please try again.' })
     }
 
     const data = await response.json() as {
-      candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>
+      choices?: Array<{ message?: { content?: string } }>
     }
-    const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || ''
+    const rawText = data.choices?.[0]?.message?.content || ''
 
     const jsonMatch = rawText.match(/\{[\s\S]*\}/)
     if (!jsonMatch) {
