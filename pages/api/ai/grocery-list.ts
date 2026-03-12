@@ -23,9 +23,9 @@ export default async function handler(
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const apiKey = process.env.ANTHROPIC_API_KEY
+  const apiKey = process.env.GEMINI_API_KEY
   if (!apiKey) {
-    return res.status(500).json({ error: 'AI service not configured. Please add ANTHROPIC_API_KEY.' })
+    return res.status(500).json({ error: 'AI service not configured. Please add GEMINI_API_KEY.' })
   }
 
   const { userId } = req.body as { userId?: string }
@@ -39,9 +39,7 @@ User Profile:
 - Goal: maintain weight
 - Diet Preference: omnivore
 - Daily Targets: 2000 kcal, 150g protein, 200g carbs, 65g fat
-
-No active diet plan set.
-No recent food logs.`
+No active diet plan. No recent food logs.`
 
   if (userId) {
     const { data: user } = await supabase
@@ -52,7 +50,7 @@ No recent food logs.`
 
     const { data: dietPlan } = await supabase
       .from('diet_plans')
-      .select('title, description, meals')
+      .select('title, description')
       .eq('user_id', userId)
       .eq('is_active', true)
       .single()
@@ -73,13 +71,12 @@ User Profile:
 - Diet Preference: ${user?.diet_preference || 'omnivore'}
 - Daily Targets: ${user?.calorie_target || 2000} kcal, ${user?.protein_target || 150}g protein, ${user?.carb_target || 200}g carbs, ${user?.fat_target || 65}g fat
 
-${dietPlan ? `Active Diet Plan: "${dietPlan.title}"
-Plan Description: ${dietPlan.description || 'Custom meal plan'}` : 'No active diet plan set.'}
+${dietPlan ? `Active Diet Plan: "${dietPlan.title}" — ${dietPlan.description || ''}` : 'No active diet plan.'}
 
 Recently consumed foods (last 7 days):
 ${recentLogs && recentLogs.length > 0
   ? recentLogs.slice(0, 5).map((log, i) =>
-      `Day ${i + 1}: breakfast=${JSON.stringify(log.breakfast)?.slice(0, 100)}, lunch=${JSON.stringify(log.lunch)?.slice(0, 100)}`
+      `Day ${i + 1}: breakfast=${JSON.stringify(log.breakfast)?.slice(0, 80)}, lunch=${JSON.stringify(log.lunch)?.slice(0, 80)}`
     ).join('\n')
   : 'No recent food logs.'}`
   }
@@ -88,11 +85,7 @@ ${recentLogs && recentLogs.length > 0
 
 ${context}
 
-Create a practical, budget-friendly grocery list for one week that:
-1. Supports the user's nutritional goals and diet preference
-2. Includes variety to prevent meal fatigue
-3. Focuses on whole, nutritious foods
-4. Groups items by store section
+Create a practical, budget-friendly grocery list for one week that supports the user's goals and diet preference.
 
 Respond ONLY with valid JSON in this exact format:
 {
@@ -110,26 +103,28 @@ Respond ONLY with valid JSON in this exact format:
 Include 25-35 items covering all major food groups appropriate for the diet preference.`
 
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'claude-3-5-sonnet-20241022',
-        max_tokens: 2048,
-        messages: [{ role: 'user', content: prompt }],
-      }),
-    })
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { maxOutputTokens: 2048, temperature: 0.4 },
+        }),
+      }
+    )
 
     if (!response.ok) {
+      const errorText = await response.text()
+      console.error('Gemini API error:', errorText)
       return res.status(502).json({ error: 'AI service error. Please try again.' })
     }
 
-    const data = await response.json() as { content: Array<{ type: string; text: string }> }
-    const rawText = data.content?.[0]?.text || ''
+    const data = await response.json() as {
+      candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>
+    }
+    const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || ''
 
     const jsonMatch = rawText.match(/\{[\s\S]*\}/)
     if (!jsonMatch) {

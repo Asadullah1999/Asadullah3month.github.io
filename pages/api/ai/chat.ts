@@ -19,9 +19,9 @@ export default async function handler(
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const apiKey = process.env.ANTHROPIC_API_KEY
+  const apiKey = process.env.GEMINI_API_KEY
   if (!apiKey) {
-    return res.status(500).json({ error: 'AI service not configured. Please add ANTHROPIC_API_KEY.' })
+    return res.status(500).json({ error: 'AI service not configured. Please add GEMINI_API_KEY.' })
   }
 
   const { messages, userId } = req.body as { messages: Message[]; userId?: string }
@@ -29,7 +29,6 @@ export default async function handler(
     return res.status(400).json({ error: 'Messages array is required' })
   }
 
-  // Use service role to fetch user data server-side
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   const supabase = createClient<Database>(supabaseUrl, serviceKey)
@@ -82,33 +81,41 @@ ${userContext}
 
 Guidelines:
 - Give specific, actionable advice based on the client's profile and goals
-- Reference their actual data when relevant (calorie targets, recent logs, diet preference)
-- Be encouraging but honest about areas for improvement
-- Keep responses concise (2-4 paragraphs max) and easy to understand
-- Use bullet points for lists of recommendations
+- Reference their actual data when relevant
+- Be encouraging but honest
+- Keep responses concise (2-4 paragraphs max)
+- Use bullet points for lists
 - Always maintain a supportive, professional tone
-- If asked about medical conditions, recommend consulting a healthcare professional
-- Focus on practical, sustainable nutrition strategies`
+- For medical conditions, recommend consulting a healthcare professional`
+
+  // Gemini uses "model" instead of "assistant" for role
+  const geminiHistory = messages.slice(0, -1).map((m) => ({
+    role: m.role === 'assistant' ? 'model' : 'user',
+    parts: [{ text: m.content }],
+  }))
+
+  const lastMessage = messages[messages.length - 1]
 
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'claude-3-5-sonnet-20241022',
-        max_tokens: 1024,
-        system: systemPrompt,
-        messages: messages.map((m) => ({ role: m.role, content: m.content })),
-      }),
-    })
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          system_instruction: { parts: [{ text: systemPrompt }] },
+          contents: [
+            ...geminiHistory,
+            { role: 'user', parts: [{ text: lastMessage.content }] },
+          ],
+          generationConfig: { maxOutputTokens: 1024, temperature: 0.7 },
+        }),
+      }
+    )
 
     if (!response.ok) {
       const errorText = await response.text()
-      console.error('Anthropic API error:', errorText)
+      console.error('Gemini API error:', errorText)
       let userMsg = 'AI service error. Please try again.'
       try {
         const errJson = JSON.parse(errorText)
@@ -117,8 +124,10 @@ Guidelines:
       return res.status(502).json({ error: userMsg })
     }
 
-    const data = await response.json() as { content: Array<{ type: string; text: string }> }
-    const reply = data.content?.[0]?.text || 'I could not generate a response. Please try again.'
+    const data = await response.json() as {
+      candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>
+    }
+    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'I could not generate a response. Please try again.'
 
     return res.status(200).json({ reply })
   } catch (err) {

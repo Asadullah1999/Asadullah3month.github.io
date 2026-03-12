@@ -34,13 +34,12 @@ export default async function handler(
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const apiKey = process.env.ANTHROPIC_API_KEY
+  const apiKey = process.env.GEMINI_API_KEY
   if (!apiKey) {
-    return res.status(500).json({ error: 'AI service not configured. Please add ANTHROPIC_API_KEY to your environment.' })
+    return res.status(500).json({ error: 'AI service not configured. Please add GEMINI_API_KEY to your environment.' })
   }
 
   const { image, mimeType = 'image/jpeg' } = req.body as { image: string; mimeType?: string }
-
   if (!image) {
     return res.status(400).json({ error: 'Image is required' })
   }
@@ -64,51 +63,37 @@ Respond ONLY with valid JSON in this exact format:
   ]
 }
 
-Be precise with nutritional values based on standard serving sizes. If you cannot clearly identify a food item, make your best estimate. Always return valid JSON with at least one food item.`
+Be precise with nutritional values based on standard serving sizes. Always return valid JSON with at least one food item.`
 
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'claude-3-5-sonnet-20241022',
-        max_tokens: 1024,
-        messages: [
-          {
-            role: 'user',
-            content: [
-              {
-                type: 'image',
-                source: {
-                  type: 'base64',
-                  media_type: mimeType,
-                  data: image,
-                },
-              },
-              {
-                type: 'text',
-                text: prompt,
-              },
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            parts: [
+              { inline_data: { mime_type: mimeType, data: image } },
+              { text: prompt },
             ],
-          },
-        ],
-      }),
-    })
+          }],
+          generationConfig: { maxOutputTokens: 1024, temperature: 0.1 },
+        }),
+      }
+    )
 
     if (!response.ok) {
       const errorText = await response.text()
-      console.error('Anthropic API error:', errorText)
+      console.error('Gemini API error:', errorText)
       return res.status(502).json({ error: 'AI analysis failed. Please try again.' })
     }
 
-    const data = await response.json() as { content: Array<{ type: string; text: string }> }
-    const rawText = data.content?.[0]?.text || ''
+    const data = await response.json() as {
+      candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>
+    }
+    const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || ''
 
-    // Extract JSON from the response
     const jsonMatch = rawText.match(/\{[\s\S]*\}/)
     if (!jsonMatch) {
       return res.status(500).json({ error: 'Could not parse AI response. Please try again.' })
