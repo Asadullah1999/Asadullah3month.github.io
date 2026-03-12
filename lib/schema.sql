@@ -135,9 +135,15 @@ create policy "users_select_own" on public.users for select using (auth.uid() = 
 create policy "users_insert_own" on public.users for insert with check (auth.uid() = id);
 create policy "users_update_own" on public.users for update using (auth.uid() = id);
 
--- Nutritionists can read all users
+-- Helper function to get current user's role without causing RLS recursion
+create or replace function public.get_my_role()
+returns text language sql security definer stable as $$
+  select role from public.users where id = auth.uid()
+$$;
+
+-- Nutritionists can read all users (uses security definer function to avoid recursion)
 create policy "nutritionist_select_all_users" on public.users for select
-  using (exists (select 1 from public.users u where u.id = auth.uid() and u.role in ('admin','nutritionist')));
+  using (auth.uid() = id or get_my_role() in ('admin','nutritionist'));
 
 -- Diet plans
 create policy "dietplans_select_own" on public.diet_plans for select using (auth.uid() = user_id);
