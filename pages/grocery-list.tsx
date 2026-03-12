@@ -1,9 +1,9 @@
 import { useState, useCallback } from 'react'
 import Head from 'next/head'
 import DashboardLayout from '@/components/layout/DashboardLayout'
-import { Button } from '@/components/ui/Button'
-import { Card, CardHeader, CardTitle } from '@/components/ui/Card'
-import { Badge } from '@/components/ui/Badge'
+import Button from '@/components/ui/Button'
+import Card, { CardHeader, CardTitle } from '@/components/ui/Card'
+import Badge from '@/components/ui/Badge'
 import toast from 'react-hot-toast'
 import {
   ShoppingCart, RefreshCw, CheckSquare, Square, Trash2,

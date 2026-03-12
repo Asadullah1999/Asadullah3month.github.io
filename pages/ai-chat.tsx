@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import Head from 'next/head'
 import DashboardLayout from '@/components/layout/DashboardLayout'
-import { Button } from '@/components/ui/Button'
-import { Card } from '@/components/ui/Card'
+import Button from '@/components/ui/Button'
+import Card from '@/components/ui/Card'
 import toast from 'react-hot-toast'
 import { Send, Bot, User, Trash2, Sparkles } from 'lucide-react'
 
