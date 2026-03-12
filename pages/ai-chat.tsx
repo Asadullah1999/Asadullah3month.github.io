@@ -120,7 +120,7 @@ export default function AIChatPage() {
 
   return (
     <DashboardLayout title="AI Nutritionist Chat">
-      <Head><title>AI Nutritionist Chat – NutriCoach</title></Head>
+      <Head><title>AI Nutritionist Chat – FahmiFit</title></Head>
 
       <div className="max-w-3xl mx-auto flex flex-col h-[calc(100vh-8rem)]">
         {/* Header */}

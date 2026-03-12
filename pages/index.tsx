@@ -89,7 +89,7 @@ export default function LandingPage() {
   return (
     <>
       <Head>
-        <title>NutriCoach — Nutrition Coaching with WhatsApp</title>
+        <title>FahmiFit — Nutrition Coaching with WhatsApp</title>
       </Head>
       <div className="min-h-screen bg-white">
         {/* Nav */}
@@ -99,7 +99,7 @@ export default function LandingPage() {
               <div className="w-8 h-8 rounded-xl bg-green-600 flex items-center justify-center">
                 <Leaf className="w-4 h-4 text-white" />
               </div>
-              <span className="font-semibold text-gray-900 text-lg">NutriCoach</span>
+              <span className="font-semibold text-gray-900 text-lg">FahmiFit</span>
             </div>
             <div className="flex items-center gap-3">
               <Link
@@ -229,9 +229,9 @@ export default function LandingPage() {
               <div className="w-7 h-7 rounded-lg bg-green-600 flex items-center justify-center">
                 <Leaf className="w-3.5 h-3.5 text-white" />
               </div>
-              <span className="font-semibold text-gray-700">NutriCoach</span>
+              <span className="font-semibold text-gray-700">FahmiFit</span>
             </div>
-            <p className="text-sm text-gray-400">© 2025 NutriCoach. All rights reserved.</p>
+            <p className="text-sm text-gray-400">© 2025 FahmiFit. All rights reserved.</p>
           </div>
         </footer>
       </div>

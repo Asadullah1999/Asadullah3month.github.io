@@ -217,7 +217,7 @@ export default function BarcodeScannerPage() {
 
   return (
     <DashboardLayout title="Barcode Scanner">
-      <Head><title>Barcode Scanner – NutriCoach</title></Head>
+      <Head><title>Barcode Scanner – FahmiFit</title></Head>
 
       <div className="max-w-2xl mx-auto space-y-6">
         {/* Header */}

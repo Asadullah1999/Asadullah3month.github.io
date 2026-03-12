@@ -65,7 +65,7 @@ export default function SignupPage() {
 
   return (
     <>
-      <Head><title>Create Account · NutriCoach</title></Head>
+      <Head><title>Create Account · FahmiFit</title></Head>
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-8">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
@@ -73,7 +73,7 @@ export default function SignupPage() {
               <div className="w-10 h-10 rounded-2xl bg-green-600 flex items-center justify-center">
                 <Leaf className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-gray-900">NutriCoach</span>
+              <span className="text-xl font-bold text-gray-900">FahmiFit</span>
             </Link>
             <h1 className="text-2xl font-bold text-gray-900">Create your account</h1>
             <p className="text-gray-500 mt-1.5 text-sm">Start your nutrition journey today</p>

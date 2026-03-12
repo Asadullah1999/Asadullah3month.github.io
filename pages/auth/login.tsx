@@ -53,7 +53,7 @@ export default function LoginPage() {
 
   return (
     <>
-      <Head><title>Sign In · NutriCoach</title></Head>
+      <Head><title>Sign In · FahmiFit</title></Head>
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
         <div className="w-full max-w-md">
           {/* Logo */}
@@ -62,7 +62,7 @@ export default function LoginPage() {
               <div className="w-10 h-10 rounded-2xl bg-green-600 flex items-center justify-center">
                 <Leaf className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-gray-900">NutriCoach</span>
+              <span className="text-xl font-bold text-gray-900">FahmiFit</span>
             </Link>
             <h1 className="text-2xl font-bold text-gray-900">Welcome back</h1>
             <p className="text-gray-500 mt-1.5 text-sm">Sign in to your account</p>

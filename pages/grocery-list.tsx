@@ -87,7 +87,7 @@ export default function GroceryListPage() {
   }, [])
 
   const downloadList = useCallback(() => {
-    const lines = [`NutriCoach Grocery List`, `${generatedFor}`, `${summary}`, '']
+    const lines = [`FahmiFit Grocery List`, `${generatedFor}`, `${summary}`, '']
     const byCategory = groupByCategory(items.filter((i) => !i.checked))
     for (const [cat, catItems] of Object.entries(byCategory)) {
       lines.push(`== ${CATEGORY_CONFIG[cat as Category].label} ==`)
@@ -118,7 +118,7 @@ export default function GroceryListPage() {
 
   return (
     <DashboardLayout title="Smart Grocery List">
-      <Head><title>Smart Grocery List – NutriCoach</title></Head>
+      <Head><title>Smart Grocery List – FahmiFit</title></Head>
 
       <div className="max-w-2xl mx-auto space-y-6">
         {/* Header */}

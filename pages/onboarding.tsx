@@ -123,7 +123,7 @@ export default function OnboardingPage() {
 
   return (
     <>
-      <Head><title>Set Up Profile · NutriCoach</title></Head>
+      <Head><title>Set Up Profile · FahmiFit</title></Head>
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-8">
         <div className="w-full max-w-lg">
           {/* Logo */}
@@ -131,7 +131,7 @@ export default function OnboardingPage() {
             <div className="w-9 h-9 rounded-xl bg-green-600 flex items-center justify-center">
               <Leaf className="w-4.5 h-4.5 text-white" size={18} />
             </div>
-            <span className="font-bold text-gray-900 text-lg">NutriCoach</span>
+            <span className="font-bold text-gray-900 text-lg">FahmiFit</span>
           </div>
 
           {/* Progress stepper */}

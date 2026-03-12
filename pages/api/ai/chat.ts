@@ -75,7 +75,7 @@ ${recentLogs && recentLogs.length > 0
     }
   }
 
-  const systemPrompt = `You are an expert AI nutritionist and health coach named NutriCoach AI. You provide personalized, science-based nutrition advice.
+  const systemPrompt = `You are an expert AI nutritionist and health coach named FahmiFit AI. You provide personalized, science-based nutrition advice.
 
 ${userContext}
 

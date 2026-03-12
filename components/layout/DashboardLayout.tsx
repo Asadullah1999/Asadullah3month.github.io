@@ -46,14 +46,14 @@ export default function DashboardLayout({ children, title, pageTitle }: Dashboar
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 rounded-xl bg-green-600 flex items-center justify-center animate-pulse">
-            <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M3.293 9.707a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L4.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-brand-500 to-violet-500 flex items-center justify-center shadow-[0_0_24px_rgba(6,182,212,0.4)] animate-pulse-glow">
+            <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           </div>
-          <p className="text-sm text-gray-500">Loading...</p>
+          <p className="text-sm text-gray-600 tracking-wider uppercase text-[11px] font-semibold">Loading FahmiFit...</p>
         </div>
       </div>
     )
@@ -64,10 +64,10 @@ export default function DashboardLayout({ children, title, pageTitle }: Dashboar
   return (
     <>
       <Head>
-        <title>{pageTitle ? `${pageTitle} · NutriCoach` : 'NutriCoach'}</title>
+        <title>{pageTitle ? `${pageTitle} · FahmiFit` : 'FahmiFit'}</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-[#0a0a0a]">
         <Sidebar isAdmin={isAdmin} user={user || undefined} />
         <Header title={title} isAdmin={isAdmin} />
         <main className="lg:ml-60 pt-14 lg:pt-0">
