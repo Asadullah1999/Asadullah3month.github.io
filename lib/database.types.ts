@@ -106,6 +106,56 @@ export type DietPlan = {
   created_at: string
 }
 
+export type MealScan = {
+  id: string
+  user_id: string
+  image_url: string
+  detected_meals: Json
+  total_calories: number | null
+  total_protein: number | null
+  total_carbs: number | null
+  total_fat: number | null
+  ai_confidence: number
+  logged: boolean
+  scan_date: string
+  created_at: string
+}
+
+export type NutritionistChat = {
+  id: string
+  user_id: string
+  title: string
+  system_context: string | null
+  created_at: string
+  updated_at: string
+}
+
+export type ChatMessage = {
+  id: string
+  chat_id: string
+  user_id: string
+  role: 'user' | 'assistant'
+  content: string
+  created_at: string
+}
+
+export type GroceryListItem = {
+  ingredient: string
+  quantity: number
+  unit: string
+  category: string
+  checked?: boolean
+}
+
+export type GroceryList = {
+  id: string
+  user_id: string
+  diet_plan_id: string
+  items: GroceryListItem[]
+  exported_at: string | null
+  created_at: string
+}
+
 // Supabase Database type (used for createClient<Database>)
 export type Database = {
   public: {
@@ -139,6 +189,26 @@ export type Database = {
         Row: DietPlan
         Insert: Partial<DietPlan> & { user_id: string; title: string; calorie_target: number }
         Update: Partial<DietPlan>
+      }
+      meal_scans: {
+        Row: MealScan
+        Insert: Partial<MealScan> & { user_id: string; image_url: string; ai_confidence: number }
+        Update: Partial<MealScan>
+      }
+      nutritionist_chats: {
+        Row: NutritionistChat
+        Insert: Partial<NutritionistChat> & { user_id: string; title: string }
+        Update: Partial<NutritionistChat>
+      }
+      chat_messages: {
+        Row: ChatMessage
+        Insert: Partial<ChatMessage> & { chat_id: string; user_id: string; role: ChatMessage['role']; content: string }
+        Update: Partial<ChatMessage>
+      }
+      grocery_lists: {
+        Row: GroceryList
+        Insert: Partial<GroceryList> & { user_id: string; diet_plan_id: string; items: GroceryListItem[] }
+        Update: Partial<GroceryList>
       }
     }
   }

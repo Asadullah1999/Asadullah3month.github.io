@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import {
   LayoutDashboard, User, MessageCircle, ClipboardList,
   TrendingUp, Settings, LogOut, Leaf, Bell, ShieldCheck,
+  Camera, Brain, ShoppingCart,
 } from 'lucide-react'
 
 const NAV = [
@@ -14,6 +15,12 @@ const NAV = [
   { href: '/whatsapp',   icon: MessageCircle,    label: 'WhatsApp' },
   { href: '/reminders',  icon: Bell,             label: 'Reminders' },
   { href: '/profile',    icon: User,             label: 'Profile' },
+]
+
+const AI_NAV = [
+  { href: '/meal-scanner',        icon: Camera,       label: 'AI Meal Scanner' },
+  { href: '/nutritionist-chat',   icon: Brain,        label: 'AI Coach' },
+  { href: '/grocery-list',        icon: ShoppingCart, label: 'Grocery List' },
 ]
 
 interface SidebarProps {
@@ -55,6 +62,29 @@ export default function Sidebar({ isAdmin, user }: SidebarProps) {
               )}
             >
               <Icon size={18} className={active ? 'text-green-600' : 'text-gray-400'} />
+              {label}
+            </Link>
+          )
+        })}
+
+        {/* AI Features */}
+        <div className="pt-4 pb-1 px-3">
+          <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">AI Features</p>
+        </div>
+        {AI_NAV.map(({ href, icon: Icon, label }) => {
+          const active = router.pathname === href || router.pathname.startsWith(href + '/')
+          return (
+            <Link
+              key={href}
+              href={href}
+              className={cn(
+                'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors duration-150',
+                active
+                  ? 'text-blue-700 bg-blue-50'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              )}
+            >
+              <Icon size={18} className={active ? 'text-blue-600' : 'text-gray-400'} />
               {label}
             </Link>
           )
