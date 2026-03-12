@@ -1,6 +1,7 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import Head from 'next/head'
 import DashboardLayout from '@/components/layout/DashboardLayout'
+import { supabase } from '@/lib/supabase'
 import Button from '@/components/ui/Button'
 import Card, { CardHeader, CardTitle } from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
@@ -35,6 +36,13 @@ export default function GroceryListPage() {
   const [generatedFor, setGeneratedFor] = useState('')
   const [generating, setGenerating] = useState(false)
   const [generated, setGenerated] = useState(false)
+  const [userId, setUserId] = useState<string | null>(null)
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user) setUserId(data.user.id)
+    })
+  }, [])
 
   const generateList = useCallback(async () => {
     setGenerating(true)
@@ -42,6 +50,7 @@ export default function GroceryListPage() {
       const response = await fetch('/api/ai/grocery-list', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId }),
       })
 
       const data = await response.json()

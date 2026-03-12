@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs'
+import { createClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/database.types'
 
 type GroceryItem = {
@@ -28,55 +28,61 @@ export default async function handler(
     return res.status(500).json({ error: 'AI service not configured. Please add ANTHROPIC_API_KEY.' })
   }
 
-  const supabase = createServerSupabaseClient<Database>({ req, res })
-  const { data: { session } } = await supabase.auth.getSession()
-  if (!session) {
-    return res.status(401).json({ error: 'Unauthorized' })
-  }
+  const { userId } = req.body as { userId?: string }
 
-  // Fetch user profile
-  const { data: user } = await supabase
-    .from('users')
-    .select('full_name, goal, diet_preference, calorie_target, protein_target, carb_target, fat_target')
-    .eq('id', session.user.id)
-    .single()
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  const supabase = createClient<Database>(supabaseUrl, serviceKey)
 
-  // Fetch active diet plan
-  const { data: dietPlan } = await supabase
-    .from('diet_plans')
-    .select('title, description, meals')
-    .eq('user_id', session.user.id)
-    .eq('is_active', true)
-    .single()
+  let context = `
+User Profile:
+- Goal: maintain weight
+- Diet Preference: omnivore
+- Daily Targets: 2000 kcal, 150g protein, 200g carbs, 65g fat
 
-  // Fetch last 7 days of logged foods for context
-  const today = new Date()
-  const sevenDaysAgo = new Date(today)
-  sevenDaysAgo.setDate(today.getDate() - 7)
+No active diet plan set.
+No recent food logs.`
 
-  const { data: recentLogs } = await supabase
-    .from('daily_logs')
-    .select('breakfast, lunch, dinner, snacks')
-    .eq('user_id', session.user.id)
-    .gte('log_date', sevenDaysAgo.toISOString().split('T')[0])
+  if (userId) {
+    const { data: user } = await supabase
+      .from('users')
+      .select('goal, diet_preference, calorie_target, protein_target, carb_target, fat_target')
+      .eq('id', userId)
+      .single()
 
-  const context = `
+    const { data: dietPlan } = await supabase
+      .from('diet_plans')
+      .select('title, description, meals')
+      .eq('user_id', userId)
+      .eq('is_active', true)
+      .single()
+
+    const today = new Date()
+    const sevenDaysAgo = new Date(today)
+    sevenDaysAgo.setDate(today.getDate() - 7)
+
+    const { data: recentLogs } = await supabase
+      .from('daily_logs')
+      .select('breakfast, lunch, dinner, snacks')
+      .eq('user_id', userId)
+      .gte('log_date', sevenDaysAgo.toISOString().split('T')[0])
+
+    context = `
 User Profile:
 - Goal: ${user?.goal?.replace('_', ' ') || 'maintain weight'}
 - Diet Preference: ${user?.diet_preference || 'omnivore'}
 - Daily Targets: ${user?.calorie_target || 2000} kcal, ${user?.protein_target || 150}g protein, ${user?.carb_target || 200}g carbs, ${user?.fat_target || 65}g fat
 
 ${dietPlan ? `Active Diet Plan: "${dietPlan.title}"
-Plan Description: ${dietPlan.description || 'Custom meal plan'}
-Plan Meals: ${JSON.stringify(dietPlan.meals).slice(0, 500)}` : 'No active diet plan set.'}
+Plan Description: ${dietPlan.description || 'Custom meal plan'}` : 'No active diet plan set.'}
 
 Recently consumed foods (last 7 days):
 ${recentLogs && recentLogs.length > 0
   ? recentLogs.slice(0, 5).map((log, i) =>
       `Day ${i + 1}: breakfast=${JSON.stringify(log.breakfast)?.slice(0, 100)}, lunch=${JSON.stringify(log.lunch)?.slice(0, 100)}`
     ).join('\n')
-  : 'No recent food logs.'}
-`
+  : 'No recent food logs.'}`
+  }
 
   const prompt = `Based on this nutrition profile, generate a comprehensive weekly grocery shopping list.
 
@@ -90,7 +96,7 @@ Create a practical, budget-friendly grocery list for one week that:
 
 Respond ONLY with valid JSON in this exact format:
 {
-  "summary": "Brief description of the grocery list focus (e.g., 'High-protein grocery list for muscle building with balanced macros')",
+  "summary": "Brief description of the grocery list focus",
   "generated_for": "Week of [current week description]",
   "items": [
     {
@@ -101,7 +107,7 @@ Respond ONLY with valid JSON in this exact format:
   ]
 }
 
-Include 25-35 items covering all major food groups appropriate for the diet preference. Each item must have a specific quantity for one week.`
+Include 25-35 items covering all major food groups appropriate for the diet preference.`
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -112,7 +118,7 @@ Include 25-35 items covering all major food groups appropriate for the diet pref
         'content-type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'claude-opus-4-6',
+        model: 'claude-sonnet-4-6',
         max_tokens: 2048,
         messages: [{ role: 'user', content: prompt }],
       }),
@@ -130,7 +136,11 @@ Include 25-35 items covering all major food groups appropriate for the diet pref
       return res.status(500).json({ error: 'Could not parse AI response.' })
     }
 
-    const parsed = JSON.parse(jsonMatch[0]) as { summary: string; generated_for: string; items: Array<{ name: string; quantity: string; category: GroceryItem['category'] }> }
+    const parsed = JSON.parse(jsonMatch[0]) as {
+      summary: string
+      generated_for: string
+      items: Array<{ name: string; quantity: string; category: GroceryItem['category'] }>
+    }
 
     const items: GroceryItem[] = (parsed.items || []).map((item) => ({
       name: item.name || 'Unknown item',

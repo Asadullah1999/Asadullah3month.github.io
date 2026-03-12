@@ -3,6 +3,7 @@ import Head from 'next/head'
 import DashboardLayout from '@/components/layout/DashboardLayout'
 import Button from '@/components/ui/Button'
 import Card from '@/components/ui/Card'
+import { supabase } from '@/lib/supabase'
 import toast from 'react-hot-toast'
 import { Send, Bot, User, Trash2, Sparkles } from 'lucide-react'
 
@@ -33,8 +34,15 @@ export default function AIChatPage() {
   ])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
+  const [userId, setUserId] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user) setUserId(data.user.id)
+    })
+  }, [])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -66,7 +74,7 @@ export default function AIChatPage() {
       const response = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: payload }),
+        body: JSON.stringify({ messages: payload, userId }),
       })
 
       const data = await response.json()

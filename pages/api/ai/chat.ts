@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs'
+import { createClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/database.types'
 
 type Message = {
@@ -24,39 +24,38 @@ export default async function handler(
     return res.status(500).json({ error: 'AI service not configured. Please add ANTHROPIC_API_KEY.' })
   }
 
-  // Auth check
-  const supabase = createServerSupabaseClient<Database>({ req, res })
-  const { data: { session } } = await supabase.auth.getSession()
-  if (!session) {
-    return res.status(401).json({ error: 'Unauthorized' })
-  }
-
-  const { messages } = req.body as { messages: Message[] }
+  const { messages, userId } = req.body as { messages: Message[]; userId?: string }
   if (!messages || !Array.isArray(messages) || messages.length === 0) {
     return res.status(400).json({ error: 'Messages array is required' })
   }
 
-  // Fetch user profile for personalization
-  const { data: user } = await supabase
-    .from('users')
-    .select('full_name, age, gender, height_cm, weight_kg, goal, activity_level, diet_preference, calorie_target, protein_target, carb_target, fat_target')
-    .eq('id', session.user.id)
-    .single()
+  // Use service role to fetch user data server-side
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  const supabase = createClient<Database>(supabaseUrl, serviceKey)
 
-  // Fetch last 7 days of logs for context
-  const today = new Date()
-  const sevenDaysAgo = new Date(today)
-  sevenDaysAgo.setDate(today.getDate() - 7)
+  let userContext = 'No client profile data available.'
 
-  const { data: recentLogs } = await supabase
-    .from('daily_logs')
-    .select('log_date, total_calories, total_protein, total_carbs, total_fat, water_ml, mood')
-    .eq('user_id', session.user.id)
-    .gte('log_date', sevenDaysAgo.toISOString().split('T')[0])
-    .order('log_date', { ascending: false })
+  if (userId) {
+    const { data: user } = await supabase
+      .from('users')
+      .select('full_name, age, gender, height_cm, weight_kg, goal, activity_level, diet_preference, calorie_target, protein_target, carb_target, fat_target')
+      .eq('id', userId)
+      .single()
 
-  const userContext = user
-    ? `
+    const today = new Date()
+    const sevenDaysAgo = new Date(today)
+    sevenDaysAgo.setDate(today.getDate() - 7)
+
+    const { data: recentLogs } = await supabase
+      .from('daily_logs')
+      .select('log_date, total_calories, total_protein, total_carbs, total_fat, water_ml, mood')
+      .eq('user_id', userId)
+      .gte('log_date', sevenDaysAgo.toISOString().split('T')[0])
+      .order('log_date', { ascending: false })
+
+    if (user) {
+      userContext = `
 Client Profile:
 - Name: ${user.full_name || 'Client'}
 - Age: ${user.age || 'unknown'}
@@ -73,9 +72,9 @@ ${recentLogs && recentLogs.length > 0
   ? recentLogs.map(log =>
       `- ${log.log_date}: ${log.total_calories || 0} kcal, ${log.total_protein || 0}g protein, water: ${log.water_ml || 0}ml, mood: ${log.mood || 'not logged'}`
     ).join('\n')
-  : '- No recent logs available'}
-`
-    : 'No client profile data available.'
+  : '- No recent logs available'}`
+    }
+  }
 
   const systemPrompt = `You are an expert AI nutritionist and health coach named NutriCoach AI. You provide personalized, science-based nutrition advice.
 
@@ -100,13 +99,10 @@ Guidelines:
         'content-type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'claude-opus-4-6',
+        model: 'claude-sonnet-4-6',
         max_tokens: 1024,
         system: systemPrompt,
-        messages: messages.map((m) => ({
-          role: m.role,
-          content: m.content,
-        })),
+        messages: messages.map((m) => ({ role: m.role, content: m.content })),
       }),
     })
 
@@ -117,7 +113,7 @@ Guidelines:
     }
 
     const data = await response.json() as { content: Array<{ type: string; text: string }> }
-    const reply = data.content?.[0]?.text || 'I apologize, I could not generate a response. Please try again.'
+    const reply = data.content?.[0]?.text || 'I could not generate a response. Please try again.'
 
     return res.status(200).json({ reply })
   } catch (err) {

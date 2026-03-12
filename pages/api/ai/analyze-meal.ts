@@ -75,7 +75,7 @@ Be precise with nutritional values based on standard serving sizes. If you canno
         'content-type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'claude-opus-4-6',
+        model: 'claude-sonnet-4-6',
         max_tokens: 1024,
         messages: [
           {
