@@ -7,17 +7,21 @@ import { sounds } from '@/lib/sounds'
 import {
   Menu, X, LayoutDashboard, User, MessageCircle, ClipboardList,
   TrendingUp, Bell, LogOut, ShieldCheck, Zap, Bot, ShoppingCart,
+  Dumbbell, Scale, Moon,
 } from 'lucide-react'
 
 const NAV = [
-  { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { href: '/checkin',   icon: ClipboardList,   label: 'Check-in' },
-  { href: '/progress',  icon: TrendingUp,      label: 'Progress' },
-  { href: '/whatsapp',  icon: MessageCircle,   label: 'WhatsApp' },
-  { href: '/reminders', icon: Bell,            label: 'Reminders' },
-  { href: '/profile',   icon: User,            label: 'Profile' },
-  { href: '/ai-chat',   icon: Bot,             label: 'AI Nutritionist' },
-  { href: '/grocery-list', icon: ShoppingCart, label: 'Grocery List' },
+  { href: '/dashboard',    icon: LayoutDashboard, label: 'Dashboard' },
+  { href: '/checkin',      icon: ClipboardList,   label: 'Check-in' },
+  { href: '/progress',     icon: TrendingUp,      label: 'Progress' },
+  { href: '/whatsapp',     icon: MessageCircle,   label: 'WhatsApp' },
+  { href: '/reminders',    icon: Bell,            label: 'Reminders' },
+  { href: '/profile',      icon: User,            label: 'Profile' },
+  { href: '/workout',      icon: Dumbbell,        label: 'Workout' },
+  { href: '/weight-log',   icon: Scale,           label: 'Weight Log' },
+  { href: '/sleep',        icon: Moon,            label: 'Sleep' },
+  { href: '/ai-chat',      icon: Bot,             label: 'AI Nutritionist' },
+  { href: '/grocery-list', icon: ShoppingCart,    label: 'Grocery List' },
 ]
 
 export default function Header({ title, isAdmin }: { title?: string; isAdmin?: boolean }) {

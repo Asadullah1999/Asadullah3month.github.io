@@ -6,7 +6,7 @@ import { sounds } from '@/lib/sounds'
 import {
   LayoutDashboard, User, MessageCircle, ClipboardList,
   TrendingUp, Settings, LogOut, Bell, ShieldCheck,
-  Bot, ShoppingCart, Zap,
+  Bot, ShoppingCart, Zap, Dumbbell, Scale, Moon,
 } from 'lucide-react'
 
 const NAV = [
@@ -18,9 +18,15 @@ const NAV = [
   { href: '/profile',     icon: User,            label: 'Profile' },
 ]
 
+const HEALTH_NAV = [
+  { href: '/workout',    icon: Dumbbell, label: 'Workout' },
+  { href: '/weight-log', icon: Scale,    label: 'Weight Log' },
+  { href: '/sleep',      icon: Moon,     label: 'Sleep' },
+]
+
 const AI_NAV = [
-  { href: '/ai-chat',       icon: Bot,          label: 'AI Nutritionist' },
-  { href: '/grocery-list',  icon: ShoppingCart, label: 'Grocery List' },
+  { href: '/ai-chat',      icon: Bot,          label: 'AI Nutritionist' },
+  { href: '/grocery-list', icon: ShoppingCart, label: 'Grocery List' },
 ]
 
 interface SidebarProps {
@@ -78,6 +84,33 @@ export default function Sidebar({ isAdmin, user }: SidebarProps) {
             >
               <Icon size={17} className={active ? 'text-brand-400' : 'text-gray-600'} />
               {label}
+            </Link>
+          )
+        })}
+
+        {/* Health Tracking */}
+        <div className="pt-4 pb-2 px-3">
+          <div className="glow-line mb-3" />
+          <p className="text-[10px] font-bold text-gray-600 uppercase tracking-widest">Health</p>
+        </div>
+        {HEALTH_NAV.map(({ href, icon: Icon, label }) => {
+          const active = router.pathname === href
+          return (
+            <Link
+              key={href}
+              href={href}
+              onClick={() => sounds.nav()}
+              className={cn(
+                'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200',
+                active ? 'nav-link-active' : 'nav-link'
+              )}
+            >
+              <Icon size={17} className={active ? 'text-brand-400' : 'text-gray-600'} />
+              {label}
+              {active && (
+                <span className="ml-auto w-1.5 h-1.5 rounded-full"
+                  style={{ background: '#10b981', boxShadow: '0 0 8px rgba(16,185,129,0.8)' }} />
+              )}
             </Link>
           )
         })}
