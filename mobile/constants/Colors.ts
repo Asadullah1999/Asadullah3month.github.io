@@ -35,13 +35,15 @@ export const Colors = {
 
   cardShadow: 'rgba(0,0,0,0.4)',
   overlay: 'rgba(0,0,0,0.6)',
+
+  gradients: {
+    primary: ['#1B4332', '#2D6A4F'],
+    accent: ['#2D6A4F', '#52B788'],
+    calories: ['#FF6B6B', '#FF8E53'],
+    water: ['#74B9FF', '#0984E3'],
+    workout: ['#FDCB6E', '#E17055'],
+    sleep: ['#A29BFE', '#6C5CE7'],
+  },
 };
 
-export const Gradients = {
-  primary: ['#1B4332', '#2D6A4F'],
-  accent: ['#2D6A4F', '#52B788'],
-  calories: ['#FF6B6B', '#FF8E53'],
-  water: ['#74B9FF', '#0984E3'],
-  workout: ['#FDCB6E', '#E17055'],
-  sleep: ['#A29BFE', '#6C5CE7'],
-};
+export const Gradients = Colors.gradients;
