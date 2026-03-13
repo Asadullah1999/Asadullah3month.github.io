@@ -3,7 +3,7 @@ import Head from 'next/head'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { supabase } from '@/lib/supabase'
-import { Leaf, Mail, Lock, Eye, EyeOff } from 'lucide-react'
+import { Mail, Lock, Eye, EyeOff, Zap, ChevronRight } from 'lucide-react'
 import toast from 'react-hot-toast'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
@@ -18,62 +18,80 @@ export default function LoginPage() {
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
-
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-
-    if (error) {
-      toast.error(error.message)
-      setLoading(false)
-      return
-    }
-
+    if (error) { toast.error(error.message); setLoading(false); return }
     if (data.session) {
-      // Check if user needs onboarding
-      const { data: user } = await supabase
-        .from('users')
-        .select('onboarded')
-        .eq('id', data.session.user.id)
-        .single() as { data: { onboarded: boolean } | null; error: unknown }
-
-      if (user && !user.onboarded) {
-        router.push('/onboarding')
-      } else {
-        router.push('/dashboard')
-      }
+      const { data: user } = await supabase.from('users').select('onboarded').eq('id', data.session.user.id).single() as { data: { onboarded: boolean } | null; error: unknown }
+      router.push(user && !user.onboarded ? '/onboarding' : '/dashboard')
     }
   }
 
   async function handleGoogleLogin() {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: `${window.location.origin}/dashboard` },
-    })
+    const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: `${window.location.origin}/dashboard` } })
     if (error) toast.error(error.message)
   }
 
   return (
     <>
       <Head><title>Sign In · FahmiFit</title></Head>
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-        <div className="w-full max-w-md">
-          {/* Logo */}
-          <div className="text-center mb-8">
-            <Link href="/" className="inline-flex items-center gap-2 mb-6">
-              <div className="w-10 h-10 rounded-2xl bg-green-600 flex items-center justify-center">
-                <Leaf className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-xl font-bold text-gray-900">FahmiFit</span>
-            </Link>
-            <h1 className="text-2xl font-bold text-gray-900">Welcome back</h1>
-            <p className="text-gray-500 mt-1.5 text-sm">Sign in to your account</p>
+      <div className="min-h-screen flex" style={{ background: '#05050f' }}>
+        {/* Left: decorative */}
+        <div className="hidden lg:flex flex-1 flex-col items-center justify-center relative overflow-hidden p-12"
+          style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.06) 0%, rgba(139,92,246,0.06) 100%)' }}>
+          <div className="absolute top-1/4 left-1/4 w-64 h-64 rounded-full opacity-20 animate-aurora"
+            style={{ background: 'radial-gradient(circle, rgba(16,185,129,0.8), transparent)', filter: 'blur(60px)' }} />
+          <div className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full opacity-15 animate-aurora"
+            style={{ background: 'radial-gradient(circle, rgba(139,92,246,0.8), transparent)', filter: 'blur(80px)', animationDelay: '4s' }} />
+          <div className="relative z-10 text-center max-w-md">
+            <div className="w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-8"
+              style={{
+                background: 'linear-gradient(135deg, #10b981, #06b6d4)',
+                boxShadow: '0 0 60px rgba(16,185,129,0.5)',
+              }}>
+              <Zap size={36} className="text-white" fill="white" />
+            </div>
+            <h1 className="text-4xl font-extrabold text-white mb-4 tracking-tight">
+              Welcome to <span className="gradient-text">FahmiFit</span>
+            </h1>
+            <p className="text-gray-400 text-lg leading-relaxed">
+              Your personal AI nutrition coach. Track meals, get WhatsApp reminders, and reach your goals faster.
+            </p>
+            <div className="grid grid-cols-3 gap-4 mt-10">
+              {[['50K+','Users'],['2M+','Meals'],['4.9★','Rating']].map(([v,l]) => (
+                <div key={l} className="p-4 rounded-2xl text-center"
+                  style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                  <p className="text-2xl font-extrabold gradient-text-green">{v}</p>
+                  <p className="text-xs text-gray-500 mt-1">{l}</p>
+                </div>
+              ))}
+            </div>
           </div>
+        </div>
 
-          <div className="card p-8">
+        {/* Right: form */}
+        <div className="flex-1 lg:max-w-md flex flex-col justify-center px-8 py-12">
+          <div className="max-w-sm mx-auto w-full">
+            {/* Mobile logo */}
+            <div className="lg:hidden flex items-center gap-2.5 mb-10">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center"
+                style={{ background: 'linear-gradient(135deg, #10b981, #06b6d4)', boxShadow: '0 0 20px rgba(16,185,129,0.4)' }}>
+                <Zap size={18} className="text-white" fill="white" />
+              </div>
+              <span className="font-extrabold text-xl gradient-text">FahmiFit</span>
+            </div>
+
+            <h2 className="text-3xl font-extrabold text-white mb-2">Welcome back</h2>
+            <p className="text-gray-500 mb-8">Sign in to continue your nutrition journey</p>
+
             {/* Google */}
-            <button
-              onClick={handleGoogleLogin}
-              className="w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors mb-5"
-            >
+            <button onClick={handleGoogleLogin}
+              className="w-full flex items-center justify-center gap-3 py-3 rounded-xl text-sm font-semibold text-white transition-all duration-200 mb-6"
+              style={{
+                background: 'rgba(255,255,255,0.05)',
+                border: '1px solid rgba(255,255,255,0.12)',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.18)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)' }}>
               <svg className="w-4 h-4" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                 <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -83,70 +101,60 @@ export default function LoginPage() {
               Continue with Google
             </button>
 
-            <div className="relative mb-5">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200" />
-              </div>
-              <div className="relative flex justify-center">
-                <span className="px-3 bg-white text-xs text-gray-400">or continue with email</span>
-              </div>
+            <div className="flex items-center gap-3 mb-6">
+              <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.08)' }} />
+              <span className="text-xs text-gray-600 font-medium">or continue with email</span>
+              <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.08)' }} />
             </div>
 
-            {/* Form */}
             <form onSubmit={handleLogin} className="space-y-4">
-              <Input
-                label="Email address"
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                leftIcon={<Mail size={16} />}
-                required
-                autoComplete="email"
-              />
+              <Input label="Email address" type="email" value={email} onChange={e => setEmail(e.target.value)}
+                placeholder="you@example.com" leftIcon={<Mail size={15} />} required autoComplete="email" />
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
+                <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Password</label>
                 <div className="relative">
-                  <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">
-                    <Lock size={16} />
+                  <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none">
+                    <Lock size={15} />
                   </div>
                   <input
                     type={showPass ? 'text' : 'password'}
                     value={password}
                     onChange={e => setPassword(e.target.value)}
                     placeholder="Your password"
-                    required
-                    autoComplete="current-password"
-                    className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent placeholder:text-gray-400"
+                    required autoComplete="current-password"
+                    className="w-full pl-10 pr-10 py-3 rounded-xl text-sm text-white placeholder:text-gray-600 focus:outline-none focus:shadow-[0_0_0_3px_rgba(16,185,129,0.12)]"
+                    style={{
+                      background: 'rgba(255,255,255,0.04)',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.3)',
+                    }}
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowPass(!showPass)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
+                  <button type="button" onClick={() => setShowPass(!showPass)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors">
+                    {showPass ? <EyeOff size={15} /> : <Eye size={15} />}
                   </button>
                 </div>
               </div>
 
               <div className="flex justify-end">
-                <Link href="/auth/forgot-password" className="text-sm text-green-600 hover:text-green-700 font-medium">
+                <Link href="/auth/forgot-password" className="text-sm text-brand-400 hover:text-brand-300 font-medium transition-colors">
                   Forgot password?
                 </Link>
               </div>
 
               <Button type="submit" loading={loading} fullWidth size="lg">
-                Sign in
+                Sign in <ChevronRight size={16} />
               </Button>
             </form>
-          </div>
 
-          <p className="text-center text-sm text-gray-500 mt-6">
-            Don&apos;t have an account?{' '}
-            <Link href="/auth/signup" className="text-green-600 font-medium hover:text-green-700">
-              Create one free
-            </Link>
-          </p>
+            <p className="text-center text-sm text-gray-600 mt-6">
+              Don&apos;t have an account?{' '}
+              <Link href="/auth/signup" className="text-brand-400 font-semibold hover:text-brand-300 transition-colors">
+                Create one free
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </>

@@ -15,13 +15,13 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="w-full">
         {label && (
-          <label htmlFor={inputId} className="block text-sm font-medium text-gray-700 mb-1.5">
+          <label htmlFor={inputId} className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
             {label}
           </label>
         )}
         <div className="relative">
           {leftIcon && (
-            <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">
+            <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none">
               {leftIcon}
             </div>
           )}
@@ -29,18 +29,24 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             id={inputId}
             className={cn(
-              'w-full px-4 py-2.5 rounded-xl border bg-white text-sm',
-              'focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent',
-              'placeholder:text-gray-400 transition-shadow duration-150',
-              error ? 'border-red-300 focus:ring-red-400' : 'border-gray-200',
+              'w-full px-4 py-3 rounded-xl text-sm text-white placeholder:text-gray-600 transition-all duration-200',
+              'focus:outline-none',
+              error
+                ? 'border-red-500/50 focus:border-red-500 focus:shadow-[0_0_0_3px_rgba(239,68,68,0.15)]'
+                : 'focus:border-brand-500/50 focus:shadow-[0_0_0_3px_rgba(16,185,129,0.12)]',
               leftIcon && 'pl-10',
               className
             )}
+            style={{
+              background: 'rgba(255,255,255,0.04)',
+              border: `1px solid ${error ? 'rgba(239,68,68,0.4)' : 'rgba(255,255,255,0.1)'}`,
+              boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.3)',
+            }}
             {...props}
           />
         </div>
-        {error && <p className="mt-1.5 text-xs text-red-500">{error}</p>}
-        {hint && !error && <p className="mt-1.5 text-xs text-gray-500">{hint}</p>}
+        {error && <p className="mt-1.5 text-xs text-red-400 flex items-center gap-1">⚠ {error}</p>}
+        {hint && !error && <p className="mt-1.5 text-xs text-gray-600">{hint}</p>}
       </div>
     )
   }
@@ -63,7 +69,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
     return (
       <div className="w-full">
         {label && (
-          <label htmlFor={selectId} className="block text-sm font-medium text-gray-700 mb-1.5">
+          <label htmlFor={selectId} className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
             {label}
           </label>
         )}
@@ -71,19 +77,24 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
           ref={ref}
           id={selectId}
           className={cn(
-            'w-full px-4 py-2.5 rounded-xl border bg-white text-sm appearance-none',
-            'focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent',
-            'transition-shadow duration-150 cursor-pointer',
-            error ? 'border-red-300' : 'border-gray-200',
+            'w-full px-4 py-3 rounded-xl text-sm text-white appearance-none cursor-pointer transition-all duration-200',
+            'focus:outline-none focus:shadow-[0_0_0_3px_rgba(16,185,129,0.12)]',
+            error ? 'border-red-500/50' : '',
             className
           )}
+          style={{
+            background: 'rgba(255,255,255,0.04)',
+            border: `1px solid ${error ? 'rgba(239,68,68,0.4)' : 'rgba(255,255,255,0.1)'}`,
+          }}
           {...props}
         >
           {options.map(opt => (
-            <option key={opt.value} value={opt.value}>{opt.label}</option>
+            <option key={opt.value} value={opt.value} style={{ background: '#0f0f20', color: '#e8eaf0' }}>
+              {opt.label}
+            </option>
           ))}
         </select>
-        {error && <p className="mt-1.5 text-xs text-red-500">{error}</p>}
+        {error && <p className="mt-1.5 text-xs text-red-400">⚠ {error}</p>}
       </div>
     )
   }
