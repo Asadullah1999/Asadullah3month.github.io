@@ -41,7 +41,7 @@ export default async function handler(
     .from('users')
     .select('full_name, age, gender, height_cm, weight_kg, goal, activity_level, diet_preference, calorie_target, protein_target, carb_target, fat_target')
     .eq('id', session.user.id)
-    .single()
+    .single() as { data: any | null; error: unknown }
 
   // Fetch last 7 days of logs for context
   const today = new Date()
@@ -53,7 +53,7 @@ export default async function handler(
     .select('log_date, total_calories, total_protein, total_carbs, total_fat, water_ml, mood')
     .eq('user_id', session.user.id)
     .gte('log_date', sevenDaysAgo.toISOString().split('T')[0])
-    .order('log_date', { ascending: false })
+    .order('log_date', { ascending: false }) as { data: any[] | null; error: unknown }
 
   const userContext = user
     ? `

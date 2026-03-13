@@ -39,7 +39,7 @@ export default async function handler(
     .from('users')
     .select('full_name, goal, diet_preference, calorie_target, protein_target, carb_target, fat_target')
     .eq('id', session.user.id)
-    .single()
+    .single() as { data: any | null; error: unknown }
 
   // Fetch active diet plan
   const { data: dietPlan } = await supabase
@@ -47,7 +47,7 @@ export default async function handler(
     .select('title, description, meals')
     .eq('user_id', session.user.id)
     .eq('is_active', true)
-    .single()
+    .single() as { data: any | null; error: unknown }
 
   // Fetch last 7 days of logged foods for context
   const today = new Date()
@@ -58,7 +58,7 @@ export default async function handler(
     .from('daily_logs')
     .select('breakfast, lunch, dinner, snacks')
     .eq('user_id', session.user.id)
-    .gte('log_date', sevenDaysAgo.toISOString().split('T')[0])
+    .gte('log_date', sevenDaysAgo.toISOString().split('T')[0]) as { data: any[] | null; error: unknown }
 
   const context = `
 User Profile:
