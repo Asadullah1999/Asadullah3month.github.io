@@ -266,20 +266,6 @@ export default function WeightLogPage() {
           )}
         </div>
 
-        {/* SQL notice */}
-        <div className="p-4 rounded-2xl text-xs text-gray-600" style={{ background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.15)' }}>
-          <p className="font-bold text-amber-400 mb-1">⚠ Requires database table</p>
-          <pre className="mt-1 text-amber-400/70 overflow-x-auto">{`create table if not exists public.weight_logs (
-  id uuid primary key default uuid_generate_v4(),
-  user_id uuid references public.users(id) on delete cascade not null,
-  weight_kg numeric(5,1) not null,
-  notes text,
-  logged_at timestamptz default now()
-);
-alter table public.weight_logs enable row level security;
-create policy "weight_own" on public.weight_logs
-  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);`}</pre>
-        </div>
       </div>
     </DashboardLayout>
   )
