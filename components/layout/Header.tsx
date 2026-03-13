@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { sounds } from '@/lib/sounds'
 import {
   Menu, X, LayoutDashboard, User, MessageCircle, ClipboardList,
-  TrendingUp, Bell, LogOut, ShieldCheck, Zap,
+  TrendingUp, Bell, LogOut, ShieldCheck, Zap, Bot, ShoppingCart,
 } from 'lucide-react'
 
 const NAV = [
@@ -16,6 +16,8 @@ const NAV = [
   { href: '/whatsapp',  icon: MessageCircle,   label: 'WhatsApp' },
   { href: '/reminders', icon: Bell,            label: 'Reminders' },
   { href: '/profile',   icon: User,            label: 'Profile' },
+  { href: '/ai-chat',   icon: Bot,             label: 'AI Nutritionist' },
+  { href: '/grocery-list', icon: ShoppingCart, label: 'Grocery List' },
 ]
 
 export default function Header({ title, isAdmin }: { title?: string; isAdmin?: boolean }) {
@@ -36,18 +38,28 @@ export default function Header({ title, isAdmin }: { title?: string; isAdmin?: b
   return (
     <>
       {/* Mobile top bar */}
-      <header className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-[#0d0d0d]/90 backdrop-blur-md border-b border-[#1a1a1a] px-4 h-14 flex items-center justify-between">
+      <header className="lg:hidden fixed top-0 left-0 right-0 z-40 px-4 h-14 flex items-center justify-between"
+        style={{
+          background: 'rgba(5,5,15,0.92)',
+          backdropFilter: 'blur(20px)',
+          borderBottom: '1px solid rgba(255,255,255,0.06)',
+        }}>
         <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-brand-500 to-violet-500 flex items-center justify-center shadow-[0_0_10px_rgba(6,182,212,0.4)]">
-            <Zap size={13} className="text-white" fill="white" />
+          <div className="w-8 h-8 rounded-xl flex items-center justify-center"
+            style={{
+              background: 'linear-gradient(135deg, #10b981, #06b6d4)',
+              boxShadow: '0 0 16px rgba(16,185,129,0.4)',
+            }}>
+            <Zap size={14} className="text-white" fill="white" />
           </div>
-          <span className="font-bold gradient-text">FahmiFit</span>
+          <span className="font-extrabold gradient-text">FahmiFit</span>
         </div>
         <button
           onClick={toggleMenu}
-          className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/[0.08] transition-all"
+          className="p-2 rounded-xl text-gray-400 hover:text-white transition-all"
+          style={{ background: open ? 'rgba(255,255,255,0.08)' : 'transparent' }}
         >
-          {open ? <X size={20} /> : <Menu size={20} />}
+          {open ? <X size={18} /> : <Menu size={18} />}
         </button>
       </header>
 
@@ -55,16 +67,25 @@ export default function Header({ title, isAdmin }: { title?: string; isAdmin?: b
       {open && (
         <div className="lg:hidden fixed inset-0 z-50 flex">
           <div className="fixed inset-0 bg-black/70 backdrop-blur-sm" onClick={() => { sounds.click(); setOpen(false) }} />
-          <nav className="relative flex flex-col w-64 h-full bg-[#0d0d0d] border-r border-[#1a1a1a] shadow-elevated animate-slide-down">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-[#1a1a1a]">
+          <nav className="relative flex flex-col w-64 h-full animate-slide-down"
+            style={{
+              background: 'rgba(5,5,15,0.98)',
+              borderRight: '1px solid rgba(255,255,255,0.08)',
+              backdropFilter: 'blur(20px)',
+            }}>
+            <div className="flex items-center justify-between px-5 py-4"
+              style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
               <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-brand-500 to-violet-500 flex items-center justify-center shadow-[0_0_10px_rgba(6,182,212,0.4)]">
-                  <Zap size={13} className="text-white" fill="white" />
+                <div className="w-8 h-8 rounded-xl flex items-center justify-center"
+                  style={{ background: 'linear-gradient(135deg, #10b981, #06b6d4)', boxShadow: '0 0 14px rgba(16,185,129,0.4)' }}>
+                  <Zap size={14} className="text-white" fill="white" />
                 </div>
-                <span className="font-bold gradient-text">FahmiFit</span>
+                <span className="font-extrabold gradient-text">FahmiFit</span>
               </div>
-              <button onClick={() => { sounds.click(); setOpen(false) }} className="p-1 text-gray-500 hover:text-white transition-colors">
-                <X size={18} />
+              <button onClick={() => { sounds.click(); setOpen(false) }}
+                className="p-1.5 rounded-lg text-gray-500 hover:text-white transition-colors"
+                style={{ background: 'rgba(255,255,255,0.05)' }}>
+                <X size={16} />
               </button>
             </div>
             <div className="flex-1 overflow-y-auto p-3 space-y-0.5">
@@ -77,12 +98,10 @@ export default function Header({ title, isAdmin }: { title?: string; isAdmin?: b
                     onClick={() => { sounds.nav(); setOpen(false) }}
                     className={cn(
                       'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200',
-                      active
-                        ? 'text-brand-400 bg-brand-500/10 border border-brand-500/20'
-                        : 'text-gray-500 hover:text-white hover:bg-white/[0.05]'
+                      active ? 'nav-link-active' : 'nav-link'
                     )}
                   >
-                    <Icon size={17} className={active ? 'text-brand-400' : 'text-gray-600'} />
+                    <Icon size={16} className={active ? 'text-brand-400' : 'text-gray-600'} />
                     {label}
                   </Link>
                 )
@@ -91,19 +110,22 @@ export default function Header({ title, isAdmin }: { title?: string; isAdmin?: b
                 <Link
                   href="/admin"
                   onClick={() => { sounds.nav(); setOpen(false) }}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-500 hover:text-white hover:bg-white/[0.05] transition-all"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium nav-link"
                 >
-                  <ShieldCheck size={17} className="text-gray-600" />
+                  <ShieldCheck size={16} className="text-gray-600" />
                   Admin Panel
                 </Link>
               )}
             </div>
-            <div className="p-3 border-t border-[#1a1a1a]">
+            <div className="p-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
               <button
                 onClick={handleSignOut}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-all duration-200"
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-500 hover:text-red-400 transition-all duration-200"
+                style={{ background: 'transparent' }}
+                onMouseEnter={e => (e.currentTarget.style.background = 'rgba(239,68,68,0.08)')}
+                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
               >
-                <LogOut size={17} className="text-gray-600" />
+                <LogOut size={16} className="text-gray-600" />
                 Sign out
               </button>
             </div>
@@ -114,8 +136,12 @@ export default function Header({ title, isAdmin }: { title?: string; isAdmin?: b
       {/* Desktop page title bar */}
       {title && (
         <div className="hidden lg:block ml-60">
-          <div className="px-8 py-4 border-b border-[#1a1a1a] bg-[#0a0a0a]/80 backdrop-blur-md">
-            <h1 className="text-lg font-bold text-white">{title}</h1>
+          <div className="px-8 py-4" style={{
+            borderBottom: '1px solid rgba(255,255,255,0.06)',
+            background: 'rgba(5,5,15,0.8)',
+            backdropFilter: 'blur(20px)',
+          }}>
+            <h1 className="text-base font-bold text-white">{title}</h1>
           </div>
         </div>
       )}

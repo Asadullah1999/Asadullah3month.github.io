@@ -38,13 +38,28 @@ export default function Sidebar({ isAdmin, user }: SidebarProps) {
   }
 
   return (
-    <aside className="hidden lg:flex flex-col w-60 h-screen bg-[#0d0d0d] border-r border-[#1a1a1a] fixed left-0 top-0 z-30">
+    <aside className="hidden lg:flex flex-col w-60 h-screen fixed left-0 top-0 z-30"
+      style={{
+        background: 'rgba(5,5,15,0.95)',
+        borderRight: '1px solid rgba(255,255,255,0.06)',
+        backdropFilter: 'blur(20px)',
+      }}>
+
+      {/* Subtle top gradient accent */}
+      <div className="absolute top-0 left-0 right-0 h-px"
+        style={{ background: 'linear-gradient(90deg, transparent, rgba(16,185,129,0.4), rgba(6,182,212,0.3), transparent)' }} />
+
       {/* Logo */}
-      <div className="flex items-center gap-3 px-5 py-5 border-b border-[#1a1a1a]">
-        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-500 to-violet-500 flex items-center justify-center shadow-[0_0_16px_rgba(6,182,212,0.4)] animate-pulse-glow">
-          <Zap className="text-white" size={16} fill="white" />
+      <div className="flex items-center gap-3 px-5 py-5"
+        style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+        <div className="w-9 h-9 rounded-xl flex items-center justify-center animate-pulse-glow"
+          style={{
+            background: 'linear-gradient(135deg, #10b981 0%, #06b6d4 100%)',
+            boxShadow: '0 0 20px rgba(16,185,129,0.5), 0 0 40px rgba(16,185,129,0.2)',
+          }}>
+          <Zap className="text-white" size={17} fill="white" />
         </div>
-        <span className="font-bold text-lg tracking-tight gradient-text">FahmiFit</span>
+        <span className="font-extrabold text-lg tracking-tight gradient-text">FahmiFit</span>
       </div>
 
       {/* Nav */}
@@ -58,9 +73,7 @@ export default function Sidebar({ isAdmin, user }: SidebarProps) {
               onClick={() => sounds.nav()}
               className={cn(
                 'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200',
-                active
-                  ? 'text-brand-400 bg-brand-500/10 border border-brand-500/20'
-                  : 'text-gray-500 hover:text-white hover:bg-white/[0.05]'
+                active ? 'nav-link-active' : 'nav-link'
               )}
             >
               <Icon size={17} className={active ? 'text-brand-400' : 'text-gray-600'} />
@@ -70,9 +83,9 @@ export default function Sidebar({ isAdmin, user }: SidebarProps) {
         })}
 
         {/* AI Features */}
-        <div className="pt-4 pb-1.5 px-3">
-          <div className="glow-line mb-2" />
-          <p className="text-[10px] font-semibold text-gray-600 uppercase tracking-widest">AI Features</p>
+        <div className="pt-4 pb-2 px-3">
+          <div className="glow-line mb-3" />
+          <p className="text-[10px] font-bold text-gray-600 uppercase tracking-widest">AI Features</p>
         </div>
         {AI_NAV.map(({ href, icon: Icon, label }) => {
           const active = router.pathname === href
@@ -83,15 +96,17 @@ export default function Sidebar({ isAdmin, user }: SidebarProps) {
               onClick={() => sounds.nav()}
               className={cn(
                 'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200',
-                active
-                  ? 'text-brand-400 bg-brand-500/10 border border-brand-500/20'
-                  : 'text-gray-500 hover:text-white hover:bg-white/[0.05]'
+                active ? 'nav-link-active' : 'nav-link'
               )}
             >
               <Icon size={17} className={active ? 'text-brand-400' : 'text-gray-600'} />
               {label}
               {active && (
-                <span className="ml-auto w-1.5 h-1.5 rounded-full bg-brand-400 shadow-[0_0_6px_rgba(6,182,212,0.8)]" />
+                <span className="ml-auto w-1.5 h-1.5 rounded-full"
+                  style={{
+                    background: '#10b981',
+                    boxShadow: '0 0 8px rgba(16,185,129,0.8)',
+                  }} />
               )}
             </Link>
           )
@@ -99,9 +114,9 @@ export default function Sidebar({ isAdmin, user }: SidebarProps) {
 
         {isAdmin && (
           <>
-            <div className="pt-4 pb-1.5 px-3">
-              <div className="glow-line mb-2" />
-              <p className="text-[10px] font-semibold text-gray-600 uppercase tracking-widest">Admin</p>
+            <div className="pt-4 pb-2 px-3">
+              <div className="glow-line mb-3" />
+              <p className="text-[10px] font-bold text-gray-600 uppercase tracking-widest">Admin</p>
             </div>
             <Link
               href="/admin"
@@ -109,9 +124,12 @@ export default function Sidebar({ isAdmin, user }: SidebarProps) {
               className={cn(
                 'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200',
                 router.pathname.startsWith('/admin')
-                  ? 'text-violet-400 bg-violet-500/10 border border-violet-500/20'
-                  : 'text-gray-500 hover:text-white hover:bg-white/[0.05]'
+                  ? 'text-violet-400 border border-violet-500/20'
+                  : 'nav-link'
               )}
+              style={router.pathname.startsWith('/admin') ? {
+                background: 'rgba(139,92,246,0.1)',
+              } : {}}
             >
               <ShieldCheck size={17} className={router.pathname.startsWith('/admin') ? 'text-violet-400' : 'text-gray-600'} />
               Admin Panel
@@ -121,25 +139,38 @@ export default function Sidebar({ isAdmin, user }: SidebarProps) {
       </nav>
 
       {/* Footer */}
-      <div className="px-3 py-4 border-t border-[#1a1a1a] space-y-0.5">
+      <div className="px-3 py-4 space-y-0.5"
+        style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
         <Link
           href="/settings"
           onClick={() => sounds.click()}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-500 hover:text-white hover:bg-white/[0.05] transition-all duration-200"
+          className="nav-link"
         >
           <Settings size={17} className="text-gray-600" />
           Settings
         </Link>
         <button
           onClick={handleSignOut}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-all duration-200"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-500 hover:text-red-400 transition-all duration-200"
+          style={{ background: 'transparent' }}
+          onMouseEnter={e => (e.currentTarget.style.background = 'rgba(239,68,68,0.08)')}
+          onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
         >
           <LogOut size={17} className="text-gray-600" />
           Sign out
         </button>
+
         {user && (
-          <div className="flex items-center gap-3 px-3 py-3 mt-1">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-brand-500 to-violet-500 flex items-center justify-center text-sm font-bold text-white flex-shrink-0 shadow-[0_0_10px_rgba(6,182,212,0.3)]">
+          <div className="flex items-center gap-3 px-3 py-3 mt-2 rounded-xl"
+            style={{
+              background: 'rgba(255,255,255,0.03)',
+              border: '1px solid rgba(255,255,255,0.06)',
+            }}>
+            <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0"
+              style={{
+                background: 'linear-gradient(135deg, #10b981 0%, #8b5cf6 100%)',
+                boxShadow: '0 0 12px rgba(16,185,129,0.35)',
+              }}>
               {user.full_name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || 'F'}
             </div>
             <div className="min-w-0">
