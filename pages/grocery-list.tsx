@@ -3,7 +3,6 @@ import Head from 'next/head'
 import DashboardLayout from '@/components/layout/DashboardLayout'
 import { supabase } from '@/lib/supabase'
 import Button from '@/components/ui/Button'
-import Card, { CardHeader, CardTitle } from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
 import toast from 'react-hot-toast'
 import {
@@ -20,14 +19,21 @@ type GroceryItem = {
   checked: boolean
 }
 
-const CATEGORY_CONFIG: Record<Category, { label: string; icon: React.ElementType; color: string; bg: string }> = {
-  produce:   { label: 'Produce',    icon: Leaf,          color: 'text-green-700',  bg: 'bg-green-50'  },
-  proteins:  { label: 'Proteins',   icon: Beef,          color: 'text-red-700',    bg: 'bg-red-50'    },
-  grains:    { label: 'Grains',     icon: Wheat,         color: 'text-yellow-700', bg: 'bg-yellow-50' },
-  dairy:     { label: 'Dairy',      icon: Milk,          color: 'text-blue-700',   bg: 'bg-blue-50'   },
-  pantry:    { label: 'Pantry',     icon: Package,       color: 'text-orange-700', bg: 'bg-orange-50' },
-  beverages: { label: 'Beverages',  icon: Coffee,        color: 'text-purple-700', bg: 'bg-purple-50' },
-  other:     { label: 'Other',      icon: MoreHorizontal,color: 'text-gray-700',   bg: 'bg-gray-50'   },
+const CATEGORY_CONFIG: Record<Category, {
+  label: string
+  icon: React.ElementType
+  iconColor: string
+  iconBg: string
+  iconBorder: string
+  accentColor: string
+}> = {
+  produce:   { label: 'Produce',    icon: Leaf,           iconColor: '#34d399', iconBg: 'rgba(16,185,129,0.12)',  iconBorder: 'rgba(16,185,129,0.25)',  accentColor: 'rgba(16,185,129,0.06)'  },
+  proteins:  { label: 'Proteins',   icon: Beef,           iconColor: '#f87171', iconBg: 'rgba(239,68,68,0.12)',   iconBorder: 'rgba(239,68,68,0.25)',   accentColor: 'rgba(239,68,68,0.05)'   },
+  grains:    { label: 'Grains',     icon: Wheat,          iconColor: '#fbbf24', iconBg: 'rgba(245,158,11,0.12)',  iconBorder: 'rgba(245,158,11,0.25)',  accentColor: 'rgba(245,158,11,0.05)'  },
+  dairy:     { label: 'Dairy',      icon: Milk,           iconColor: '#60a5fa', iconBg: 'rgba(59,130,246,0.12)',  iconBorder: 'rgba(59,130,246,0.25)',  accentColor: 'rgba(59,130,246,0.05)'  },
+  pantry:    { label: 'Pantry',     icon: Package,        iconColor: '#fb923c', iconBg: 'rgba(249,115,22,0.12)',  iconBorder: 'rgba(249,115,22,0.25)',  accentColor: 'rgba(249,115,22,0.05)'  },
+  beverages: { label: 'Beverages',  icon: Coffee,         iconColor: '#c084fc', iconBg: 'rgba(192,132,252,0.12)', iconBorder: 'rgba(192,132,252,0.25)', accentColor: 'rgba(192,132,252,0.05)' },
+  other:     { label: 'Other',      icon: MoreHorizontal, iconColor: '#9ca3af', iconBg: 'rgba(156,163,175,0.12)', iconBorder: 'rgba(156,163,175,0.25)', accentColor: 'rgba(156,163,175,0.05)' },
 }
 
 export default function GroceryListPage() {
@@ -52,13 +58,8 @@ export default function GroceryListPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId }),
       })
-
       const data = await response.json()
-      if (!response.ok) {
-        toast.error(data.error || 'Failed to generate list.')
-        return
-      }
-
+      if (!response.ok) { toast.error(data.error || 'Failed to generate list.'); return }
       setItems(data.items as GroceryItem[])
       setSummary(data.summary as string)
       setGeneratedFor(data.generated_for as string)
@@ -69,12 +70,10 @@ export default function GroceryListPage() {
     } finally {
       setGenerating(false)
     }
-  }, [])
+  }, [userId])
 
   const toggleItem = useCallback((index: number) => {
-    setItems((prev) => prev.map((item, i) =>
-      i === index ? { ...item, checked: !item.checked } : item
-    ))
+    setItems((prev) => prev.map((item, i) => i === index ? { ...item, checked: !item.checked } : item))
   }, [])
 
   const removeItem = useCallback((index: number) => {
@@ -97,9 +96,7 @@ export default function GroceryListPage() {
     const blob = new Blob([lines.join('\n')], { type: 'text/plain' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
-    a.href = url
-    a.download = 'grocery-list.txt'
-    a.click()
+    a.href = url; a.download = 'grocery-list.txt'; a.click()
     URL.revokeObjectURL(url)
   }, [items, summary, generatedFor])
 
@@ -116,67 +113,73 @@ export default function GroceryListPage() {
   const checkedItems = items.filter((i) => i.checked)
   const groupedUnchecked = groupByCategory(uncheckedItems)
 
+  const cardStyle = {
+    background: 'rgba(255,255,255,0.03)',
+    border: '1px solid rgba(255,255,255,0.08)',
+    borderRadius: '20px',
+  }
+
   return (
     <DashboardLayout title="Smart Grocery List">
       <Head><title>Smart Grocery List – FahmiFit</title></Head>
 
-      <div className="max-w-2xl mx-auto space-y-6">
+      <div className="max-w-2xl mx-auto space-y-5">
         {/* Header */}
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Smart Grocery List</h1>
-            <p className="text-gray-500 mt-1 text-sm">Auto-generated based on your meal plan and nutrition goals.</p>
+            <h1 className="text-2xl font-extrabold text-white">Smart Grocery List</h1>
+            <p className="text-gray-500 mt-1 text-sm">AI-generated based on your meal plan and nutrition goals.</p>
           </div>
           {generated && (
             <div className="flex gap-2">
-              <Button variant="ghost" onClick={downloadList} className="flex items-center gap-1.5 text-sm">
-                <Download size={15} /> Export
+              <Button variant="secondary" size="sm" onClick={downloadList}>
+                <Download size={14} /> Export
               </Button>
-              <Button variant="secondary" onClick={generateList} disabled={generating} className="flex items-center gap-1.5 text-sm">
-                <RefreshCw size={15} className={generating ? 'animate-spin' : ''} /> Regenerate
+              <Button variant="secondary" size="sm" onClick={generateList} disabled={generating}>
+                <RefreshCw size={14} className={generating ? 'animate-spin' : ''} /> Regenerate
               </Button>
             </div>
           )}
         </div>
 
-        {/* Generate */}
+        {/* Generate CTA */}
         {!generated && (
-          <Card>
-            <div className="p-10 flex flex-col items-center gap-5">
-              <div className="w-20 h-20 rounded-2xl bg-green-50 flex items-center justify-center">
-                <ShoppingCart size={36} className="text-green-600" />
-              </div>
-              <div className="text-center">
-                <p className="font-semibold text-gray-900 text-lg">Generate your weekly grocery list</p>
-                <p className="text-gray-500 text-sm mt-1 max-w-sm">
-                  AI will create a personalized shopping list based on your diet goals, preferences, and meal history.
-                </p>
-              </div>
-              <Button onClick={generateList} disabled={generating} className="flex items-center gap-2 px-6">
-                {generating ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <ShoppingCart size={16} /> Generate List
-                  </>
-                )}
-              </Button>
+          <div style={cardStyle} className="p-10 flex flex-col items-center gap-6 text-center">
+            <div className="w-20 h-20 rounded-2xl flex items-center justify-center"
+              style={{
+                background: 'linear-gradient(135deg, rgba(16,185,129,0.15), rgba(6,182,212,0.1))',
+                border: '1px solid rgba(16,185,129,0.3)',
+                boxShadow: '0 0 40px rgba(16,185,129,0.12)',
+              }}>
+              <ShoppingCart size={36} className="text-brand-400" />
             </div>
-          </Card>
+            <div>
+              <p className="font-extrabold text-white text-xl">Generate your weekly grocery list</p>
+              <p className="text-gray-500 text-sm mt-2 max-w-sm mx-auto">
+                AI will create a personalized shopping list based on your diet goals, preferences, and meal history.
+              </p>
+            </div>
+            <Button onClick={generateList} disabled={generating} size="lg">
+              {generating ? (
+                <><div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> Generating...</>
+              ) : (
+                <><ShoppingCart size={16} /> Generate List</>
+              )}
+            </Button>
+          </div>
         )}
 
-        {/* Summary */}
+        {/* Summary banner */}
         {generated && summary && (
-          <div className="bg-green-50 border border-green-100 rounded-xl p-4">
-            <div className="flex items-start gap-3">
-              <ShoppingCart size={18} className="text-green-600 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm font-medium text-green-800">{summary}</p>
-                <p className="text-xs text-green-600 mt-0.5">{generatedFor} · {items.length} items total</p>
-              </div>
+          <div className="p-4 rounded-2xl flex items-start gap-3"
+            style={{
+              background: 'linear-gradient(135deg, rgba(16,185,129,0.08), rgba(6,182,212,0.05))',
+              border: '1px solid rgba(16,185,129,0.2)',
+            }}>
+            <ShoppingCart size={18} className="text-brand-400 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-semibold text-white">{summary}</p>
+              <p className="text-xs text-brand-400 mt-0.5">{generatedFor} · {items.length} items total</p>
             </div>
           </div>
         )}
@@ -184,24 +187,17 @@ export default function GroceryListPage() {
         {/* Stats row */}
         {generated && items.length > 0 && (
           <div className="grid grid-cols-3 gap-3">
-            <Card>
-              <div className="p-4 text-center">
-                <p className="text-2xl font-bold text-gray-900">{items.length}</p>
-                <p className="text-xs text-gray-500">Total Items</p>
+            {[
+              { label: 'Total Items',  value: items.length,          color: '#e2e8f0', gradient: 'rgba(255,255,255,0.05)' },
+              { label: 'Checked Off',  value: checkedItems.length,   color: '#34d399', gradient: 'rgba(16,185,129,0.08)'  },
+              { label: 'Remaining',    value: uncheckedItems.length, color: '#fbbf24', gradient: 'rgba(245,158,11,0.08)'  },
+            ].map(s => (
+              <div key={s.label} className="p-4 text-center rounded-2xl"
+                style={{ background: s.gradient, border: '1px solid rgba(255,255,255,0.07)' }}>
+                <p className="text-2xl font-extrabold" style={{ color: s.color }}>{s.value}</p>
+                <p className="text-xs text-gray-500 mt-0.5">{s.label}</p>
               </div>
-            </Card>
-            <Card>
-              <div className="p-4 text-center">
-                <p className="text-2xl font-bold text-green-600">{checkedItems.length}</p>
-                <p className="text-xs text-gray-500">Checked Off</p>
-              </div>
-            </Card>
-            <Card>
-              <div className="p-4 text-center">
-                <p className="text-2xl font-bold text-orange-600">{uncheckedItems.length}</p>
-                <p className="text-xs text-gray-500">Remaining</p>
-              </div>
-            </Card>
+            ))}
           </div>
         )}
 
@@ -210,36 +206,53 @@ export default function GroceryListPage() {
           const config = CATEGORY_CONFIG[category as Category]
           const Icon = config.icon
           return (
-            <Card key={category}>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <span className={`w-7 h-7 rounded-lg ${config.bg} flex items-center justify-center`}>
-                    <Icon size={14} className={config.color} />
+            <div key={category} style={cardStyle} className="overflow-hidden">
+              {/* Category header */}
+              <div className="flex items-center gap-3 px-6 py-4"
+                style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', background: config.accentColor }}>
+                <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{ background: config.iconBg, border: `1px solid ${config.iconBorder}` }}>
+                  <Icon size={15} style={{ color: config.iconColor }} />
+                </div>
+                <span className="font-bold text-white">{config.label}</span>
+                <div className="ml-auto">
+                  <span className="text-xs font-bold px-2.5 py-1 rounded-full"
+                    style={{ background: config.iconBg, border: `1px solid ${config.iconBorder}`, color: config.iconColor }}>
+                    {catItems.length}
                   </span>
-                  {config.label}
-                  <Badge variant="gray" className="ml-auto text-xs">{catItems.length}</Badge>
-                </CardTitle>
-              </CardHeader>
-              <div className="px-6 pb-4 space-y-2">
+                </div>
+              </div>
+              {/* Items */}
+              <div className="px-6 py-3 space-y-1">
                 {catItems.map((item, idx) => {
                   const globalIdx = items.findIndex((i) => i === item)
                   return (
-                    <div key={idx} className="flex items-center gap-3 py-1 group">
+                    <div key={idx}
+                      className="flex items-center gap-3 py-2.5 group rounded-xl px-2 -mx-2 transition-all duration-150"
+                      style={{ cursor: 'pointer' }}
+                      onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.03)')}
+                      onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                    >
                       <button
                         onClick={() => toggleItem(globalIdx)}
-                        className={`flex-shrink-0 transition-colors ${item.checked ? 'text-green-500' : 'text-gray-300 hover:text-gray-400'}`}
+                        className="flex-shrink-0 transition-all duration-200"
+                        style={{ color: item.checked ? config.iconColor : 'rgba(255,255,255,0.2)' }}
                       >
                         {item.checked ? <CheckSquare size={20} /> : <Square size={20} />}
                       </button>
                       <div className="flex-1 min-w-0">
-                        <span className={`text-sm font-medium ${item.checked ? 'line-through text-gray-400' : 'text-gray-900'}`}>
+                        <span className="text-sm font-semibold transition-all duration-200"
+                          style={{
+                            color: item.checked ? '#4b5563' : '#e2e8f0',
+                            textDecoration: item.checked ? 'line-through' : 'none',
+                          }}>
                           {item.name}
                         </span>
-                        <span className="text-xs text-gray-400 ml-2">{item.quantity}</span>
+                        <span className="text-xs text-gray-600 ml-2">{item.quantity}</span>
                       </div>
                       <button
                         onClick={() => removeItem(globalIdx)}
-                        className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-500 transition-all"
+                        className="opacity-0 group-hover:opacity-100 transition-all duration-200 text-gray-600 hover:text-red-400"
                       >
                         <Trash2 size={14} />
                       </button>
@@ -247,36 +260,37 @@ export default function GroceryListPage() {
                   )
                 })}
               </div>
-            </Card>
+            </div>
           )
         })}
 
         {/* Checked items */}
         {checkedItems.length > 0 && (
-          <Card>
-            <div className="p-4">
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-sm font-medium text-gray-500">Checked off ({checkedItems.length})</p>
-                <button onClick={clearChecked} className="text-xs text-red-500 hover:text-red-600 font-medium">
-                  Remove all
-                </button>
-              </div>
-              <div className="space-y-2">
-                {checkedItems.map((item, idx) => {
-                  const globalIdx = items.findIndex((i) => i === item)
-                  return (
-                    <div key={idx} className="flex items-center gap-3 opacity-50">
-                      <button onClick={() => toggleItem(globalIdx)} className="text-green-500 flex-shrink-0">
-                        <CheckSquare size={20} />
-                      </button>
-                      <span className="text-sm line-through text-gray-400 flex-1">{item.name}</span>
-                      <span className="text-xs text-gray-400">{item.quantity}</span>
-                    </div>
-                  )
-                })}
-              </div>
+          <div style={{ ...cardStyle, opacity: 0.7 }} className="overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-4"
+              style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+              <p className="text-sm font-bold text-gray-500">Checked off ({checkedItems.length})</p>
+              <button onClick={clearChecked}
+                className="text-xs font-bold text-red-500 hover:text-red-400 transition-colors px-3 py-1 rounded-lg"
+                style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}>
+                Remove all
+              </button>
             </div>
-          </Card>
+            <div className="px-6 py-3 space-y-1">
+              {checkedItems.map((item, idx) => {
+                const globalIdx = items.findIndex((i) => i === item)
+                return (
+                  <div key={idx} className="flex items-center gap-3 py-2">
+                    <button onClick={() => toggleItem(globalIdx)} style={{ color: '#34d399' }} className="flex-shrink-0">
+                      <CheckSquare size={20} />
+                    </button>
+                    <span className="text-sm line-through text-gray-700 flex-1">{item.name}</span>
+                    <span className="text-xs text-gray-700">{item.quantity}</span>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
         )}
       </div>
     </DashboardLayout>

@@ -12,6 +12,9 @@ type Message = {
   timestamp: Date
 }
 
+const CHAT_STORAGE_KEY = 'fahmifit_ai_chat_history'
+const MAX_STORED_MESSAGES = 100
+
 const SUGGESTED_PROMPTS = [
   { text: "How can I increase my protein intake?", icon: <Dumbbell size={13} /> },
   { text: "What should I eat before a workout?", icon: <Zap size={13} /> },
@@ -21,15 +24,27 @@ const SUGGESTED_PROMPTS = [
   { text: "Foods that reduce inflammation?", icon: <Sparkles size={13} /> },
 ]
 
+const WELCOME_MESSAGE: Message = {
+  id: 'welcome',
+  role: 'assistant',
+  content: "Hi! I'm your personal AI nutritionist. I have access to your profile and recent food logs, so I can give you personalized advice. What would you like to know?",
+  timestamp: new Date(),
+}
+
+function loadStoredMessages(): Message[] {
+  if (typeof window === 'undefined') return [WELCOME_MESSAGE]
+  try {
+    const raw = localStorage.getItem(CHAT_STORAGE_KEY)
+    if (!raw) return [WELCOME_MESSAGE]
+    const parsed = JSON.parse(raw) as Array<Omit<Message, 'timestamp'> & { timestamp: string }>
+    return parsed.map(m => ({ ...m, timestamp: new Date(m.timestamp) }))
+  } catch {
+    return [WELCOME_MESSAGE]
+  }
+}
+
 export default function AIChatPage() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: 'welcome',
-      role: 'assistant',
-      content: "Hi! I'm your personal AI nutritionist. I have access to your profile and recent food logs, so I can give you personalized advice. What would you like to know?",
-      timestamp: new Date(),
-    },
-  ])
+  const [messages, setMessages] = useState<Message[]>(loadStoredMessages)
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
@@ -41,6 +56,17 @@ export default function AIChatPage() {
       if (data.user) setUserId(data.user.id)
     })
   }, [])
+
+  // Persist messages to localStorage whenever they change
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    try {
+      const toStore = messages.slice(-MAX_STORED_MESSAGES)
+      localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(toStore))
+    } catch {
+      // localStorage full or unavailable — ignore
+    }
+  }, [messages])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -104,12 +130,8 @@ export default function AIChatPage() {
   }
 
   const clearChat = () => {
-    setMessages([{
-      id: 'welcome',
-      role: 'assistant',
-      content: "Hi! I'm your personal AI nutritionist. I have access to your profile and recent food logs, so I can give you personalized advice. What would you like to know?",
-      timestamp: new Date(),
-    }])
+    localStorage.removeItem(CHAT_STORAGE_KEY)
+    setMessages([{ ...WELCOME_MESSAGE, timestamp: new Date() }])
   }
 
   const formatTime = (date: Date) =>
