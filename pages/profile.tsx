@@ -1,13 +1,19 @@
 import { useEffect, useState } from 'react'
 import DashboardLayout from '@/components/layout/DashboardLayout'
-import Card, { CardHeader, CardTitle } from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import Input, { Select } from '@/components/ui/Input'
 import { supabase } from '@/lib/supabase'
 import { calculateBMR, calculateTDEE, calculateCalorieTarget, calculateMacros, getBMICategory } from '@/lib/utils'
 import { User } from '@/lib/database.types'
-import { Save, User as UserIcon, Ruler, Weight, Target, Activity, Salad } from 'lucide-react'
+import { Save, User as UserIcon, Ruler, Weight, Target, Activity, Salad, Flame, Zap } from 'lucide-react'
 import toast from 'react-hot-toast'
+
+const SECTION_STYLE = {
+  background: 'rgba(255,255,255,0.03)',
+  border: '1px solid rgba(255,255,255,0.08)',
+  borderRadius: '16px',
+  padding: '24px',
+}
 
 export default function ProfilePage() {
   const [user, setUser] = useState<Partial<User> | null>(null)
@@ -103,45 +109,63 @@ export default function ProfilePage() {
     { value: 'kosher',     label: 'Kosher' },
   ]
 
+  const MACRO_ITEMS = [
+    { label: 'Calories', value: user?.calorie_target, unit: 'kcal', gradient: 'linear-gradient(135deg, rgba(245,158,11,0.15), rgba(234,88,12,0.1))', border: 'rgba(245,158,11,0.25)', color: '#fbbf24' },
+    { label: 'Protein',  value: user?.protein_target, unit: 'g',    gradient: 'linear-gradient(135deg, rgba(59,130,246,0.15), rgba(99,102,241,0.1))', border: 'rgba(59,130,246,0.25)', color: '#60a5fa' },
+    { label: 'Carbs',    value: user?.carb_target,    unit: 'g',    gradient: 'linear-gradient(135deg, rgba(245,158,11,0.12), rgba(239,68,68,0.08))', border: 'rgba(245,158,11,0.2)', color: '#fb923c' },
+    { label: 'Fat',      value: user?.fat_target,     unit: 'g',    gradient: 'linear-gradient(135deg, rgba(234,179,8,0.12), rgba(245,158,11,0.08))', border: 'rgba(234,179,8,0.2)', color: '#facc15' },
+  ]
+
   return (
     <DashboardLayout pageTitle="Profile" title="My Profile">
-      <div className="max-w-2xl mx-auto space-y-6">
+      <div className="max-w-2xl mx-auto space-y-5">
 
         {/* Nutrition targets (read only) */}
         {user?.calorie_target && (
-          <Card padding="md" className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-100">
-            <CardTitle className="mb-4 text-green-800">Your Nutrition Targets</CardTitle>
-            <div className="grid grid-cols-4 gap-3">
-              {[
-                { label: 'Calories', value: `${user.calorie_target}`, unit: 'kcal', color: 'bg-white text-orange-600' },
-                { label: 'Protein',  value: `${user.protein_target}`, unit: 'g',    color: 'bg-white text-blue-600' },
-                { label: 'Carbs',    value: `${user.carb_target}`,    unit: 'g',    color: 'bg-white text-orange-500' },
-                { label: 'Fat',      value: `${user.fat_target}`,     unit: 'g',    color: 'bg-white text-yellow-600' },
-              ].map(t => (
-                <div key={t.label} className={`${t.color} rounded-xl p-3 text-center shadow-sm`}>
-                  <p className="text-lg font-bold">{t.value}</p>
-                  <p className="text-xs opacity-70">{t.unit}</p>
-                  <p className="text-xs font-medium mt-0.5">{t.label}</p>
+          <div className="rounded-2xl overflow-hidden" style={{
+            background: 'linear-gradient(135deg, rgba(16,185,129,0.08), rgba(6,182,212,0.05))',
+            border: '1px solid rgba(16,185,129,0.2)',
+            boxShadow: '0 8px 32px rgba(16,185,129,0.08)',
+          }}>
+            <div className="p-5 pb-4" style={{ borderBottom: '1px solid rgba(16,185,129,0.12)' }}>
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl flex items-center justify-center"
+                  style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.25)' }}>
+                  <Zap size={15} className="text-brand-400" />
                 </div>
-              ))}
-            </div>
-            {bmi && bmiInfo && (
-              <div className="mt-3 flex items-center gap-2 text-sm">
-                <span className="text-green-700 font-medium">BMI: {bmi}</span>
-                <span className={`font-medium ${bmiInfo.color}`}>— {bmiInfo.label}</span>
+                <p className="font-bold text-white">Your Nutrition Targets</p>
               </div>
-            )}
-          </Card>
+            </div>
+            <div className="p-5">
+              <div className="grid grid-cols-4 gap-3">
+                {MACRO_ITEMS.map(t => (
+                  <div key={t.label} className="rounded-xl p-3 text-center" style={{ background: t.gradient, border: `1px solid ${t.border}` }}>
+                    <p className="text-lg font-extrabold" style={{ color: t.color }}>{t.value}</p>
+                    <p className="text-xs font-semibold mt-0.5" style={{ color: t.color, opacity: 0.7 }}>{t.unit}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{t.label}</p>
+                  </div>
+                ))}
+              </div>
+              {bmi && bmiInfo && (
+                <div className="mt-3 flex items-center gap-2 text-sm pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                  <span className="text-brand-400 font-bold">BMI: {bmi}</span>
+                  <span className="text-gray-500">—</span>
+                  <span className="font-semibold text-white">{bmiInfo.label}</span>
+                </div>
+              )}
+            </div>
+          </div>
         )}
 
         {/* Basic info */}
-        <Card padding="md">
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <UserIcon size={16} className="text-gray-400" />
-              <CardTitle>Basic Information</CardTitle>
+        <div style={SECTION_STYLE}>
+          <div className="flex items-center gap-2 mb-5">
+            <div className="w-8 h-8 rounded-xl flex items-center justify-center"
+              style={{ background: 'rgba(139,92,246,0.12)', border: '1px solid rgba(139,92,246,0.2)' }}>
+              <UserIcon size={15} className="text-violet-400" />
             </div>
-          </CardHeader>
+            <p className="font-bold text-white">Basic Information</p>
+          </div>
           <div className="space-y-4">
             <Input
               label="Full name"
@@ -159,16 +183,24 @@ export default function ProfilePage() {
                 min="10" max="100"
               />
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Gender</label>
+                <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Gender</label>
                 <div className="grid grid-cols-3 gap-2">
                   {(['male', 'female', 'other'] as const).map(g => (
                     <button
                       key={g}
                       type="button"
                       onClick={() => update('gender', g)}
-                      className={`py-2.5 rounded-xl border text-sm font-medium capitalize transition-all ${
-                        form.gender === g ? 'border-green-500 bg-green-50 text-green-700' : 'border-gray-200 text-gray-600 hover:border-gray-300'
-                      }`}
+                      className="py-2.5 rounded-xl text-sm font-semibold capitalize transition-all duration-200"
+                      style={form.gender === g ? {
+                        background: 'rgba(16,185,129,0.15)',
+                        border: '1px solid rgba(16,185,129,0.4)',
+                        color: '#34d399',
+                        boxShadow: '0 0 12px rgba(16,185,129,0.15)',
+                      } : {
+                        background: 'rgba(255,255,255,0.04)',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        color: '#6b7280',
+                      }}
                     >
                       {g}
                     </button>
@@ -177,16 +209,17 @@ export default function ProfilePage() {
               </div>
             </div>
           </div>
-        </Card>
+        </div>
 
         {/* Body stats */}
-        <Card padding="md">
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Ruler size={16} className="text-gray-400" />
-              <CardTitle>Body Measurements</CardTitle>
+        <div style={SECTION_STYLE}>
+          <div className="flex items-center gap-2 mb-5">
+            <div className="w-8 h-8 rounded-xl flex items-center justify-center"
+              style={{ background: 'rgba(6,182,212,0.12)', border: '1px solid rgba(6,182,212,0.2)' }}>
+              <Ruler size={15} className="text-cyan-400" />
             </div>
-          </CardHeader>
+            <p className="font-bold text-white">Body Measurements</p>
+          </div>
           <div className="grid grid-cols-2 gap-4">
             <Input
               label="Height (cm)"
@@ -203,16 +236,17 @@ export default function ProfilePage() {
               placeholder="75"
             />
           </div>
-        </Card>
+        </div>
 
         {/* Goals */}
-        <Card padding="md">
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Target size={16} className="text-gray-400" />
-              <CardTitle>Goals & Activity</CardTitle>
+        <div style={SECTION_STYLE}>
+          <div className="flex items-center gap-2 mb-5">
+            <div className="w-8 h-8 rounded-xl flex items-center justify-center"
+              style={{ background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.2)' }}>
+              <Target size={15} className="text-amber-400" />
             </div>
-          </CardHeader>
+            <p className="font-bold text-white">Goals & Activity</p>
+          </div>
           <div className="space-y-4">
             <Select
               label="Primary goal"
@@ -227,25 +261,26 @@ export default function ProfilePage() {
               options={ACTIVITY_OPTIONS}
             />
           </div>
-        </Card>
+        </div>
 
         {/* Diet */}
-        <Card padding="md">
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Salad size={16} className="text-gray-400" />
-              <CardTitle>Diet Preference</CardTitle>
+        <div style={SECTION_STYLE}>
+          <div className="flex items-center gap-2 mb-5">
+            <div className="w-8 h-8 rounded-xl flex items-center justify-center"
+              style={{ background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.2)' }}>
+              <Salad size={15} className="text-brand-400" />
             </div>
-          </CardHeader>
+            <p className="font-bold text-white">Diet Preference</p>
+          </div>
           <Select
             value={form.diet_preference}
             onChange={e => update('diet_preference', e.target.value)}
             options={DIET_OPTIONS}
           />
-          <p className="text-xs text-gray-400 mt-2">
+          <p className="text-xs text-gray-600 mt-2">
             This helps personalize your meal suggestions and nutrient recommendations.
           </p>
-        </Card>
+        </div>
 
         <Button onClick={saveProfile} loading={saving} size="lg" fullWidth>
           <Save size={16} /> Save profile & recalculate targets

@@ -3,7 +3,7 @@ import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { supabase } from '@/lib/supabase'
 import { calculateBMR, calculateTDEE, calculateCalorieTarget, calculateMacros } from '@/lib/utils'
-import { Leaf, ChevronRight, ChevronLeft, Check } from 'lucide-react'
+import { Zap, ChevronRight, ChevronLeft, Check } from 'lucide-react'
 import toast from 'react-hot-toast'
 import Button from '@/components/ui/Button'
 import Input, { Select } from '@/components/ui/Input'
@@ -18,10 +18,10 @@ const GOAL_OPTIONS = [
 ]
 
 const ACTIVITY_OPTIONS = [
-  { value: 'sedentary',  label: 'Sedentary (desk job, no exercise)' },
-  { value: 'light',      label: 'Light (1–3 days/week exercise)' },
-  { value: 'moderate',   label: 'Moderate (3–5 days/week)' },
-  { value: 'active',     label: 'Active (6–7 days/week)' },
+  { value: 'sedentary',   label: 'Sedentary (desk job, no exercise)' },
+  { value: 'light',       label: 'Light (1–3 days/week exercise)' },
+  { value: 'moderate',    label: 'Moderate (3–5 days/week)' },
+  { value: 'active',      label: 'Active (6–7 days/week)' },
   { value: 'very_active', label: 'Very Active (athlete / physical job)' },
 ]
 
@@ -49,8 +49,6 @@ export default function OnboardingPage() {
     activity_level: 'moderate',
     diet_preference: 'omnivore',
   })
-
-  // Calculated targets
   const [targets, setTargets] = useState({ calories: 0, protein: 0, carbs: 0, fat: 0 })
 
   useEffect(() => {
@@ -121,37 +119,81 @@ export default function OnboardingPage() {
     return true
   }
 
+  const choiceBtnStyle = (selected: boolean) => selected ? {
+    background: 'rgba(16,185,129,0.12)',
+    border: '1px solid rgba(16,185,129,0.4)',
+    color: '#34d399',
+    boxShadow: '0 0 16px rgba(16,185,129,0.12)',
+  } : {
+    background: 'rgba(255,255,255,0.04)',
+    border: '1px solid rgba(255,255,255,0.08)',
+    color: '#9ca3af',
+  }
+
   return (
     <>
       <Head><title>Set Up Profile · FahmiFit</title></Head>
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-8">
-        <div className="w-full max-w-lg">
+      <div className="min-h-screen flex items-center justify-center px-4 py-8" style={{ background: '#05050f' }}>
+        {/* Ambient orbs */}
+        <div className="fixed top-1/4 left-1/6 w-96 h-96 rounded-full pointer-events-none opacity-10"
+          style={{ background: 'radial-gradient(circle, rgba(16,185,129,0.8), transparent)', filter: 'blur(80px)' }} />
+        <div className="fixed bottom-1/4 right-1/6 w-96 h-96 rounded-full pointer-events-none opacity-10"
+          style={{ background: 'radial-gradient(circle, rgba(139,92,246,0.8), transparent)', filter: 'blur(80px)' }} />
+
+        <div className="w-full max-w-lg relative z-10">
           {/* Logo */}
-          <div className="flex items-center gap-2 mb-8">
-            <div className="w-9 h-9 rounded-xl bg-green-600 flex items-center justify-center">
-              <Leaf className="w-4.5 h-4.5 text-white" size={18} />
+          <div className="flex items-center gap-2.5 mb-8">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center"
+              style={{ background: 'linear-gradient(135deg, #10b981, #06b6d4)', boxShadow: '0 0 20px rgba(16,185,129,0.4)' }}>
+              <Zap size={18} className="text-white" fill="white" />
             </div>
-            <span className="font-bold text-gray-900 text-lg">FahmiFit</span>
+            <span className="font-extrabold text-lg" style={{
+              background: 'linear-gradient(135deg, #10b981, #06b6d4)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+            }}>FahmiFit</span>
           </div>
 
           {/* Progress stepper */}
           <div className="flex items-center gap-2 mb-8">
             {STEPS.map((s, i) => (
               <div key={s} className="flex items-center gap-2 flex-1">
-                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0 ${
-                  i < step ? 'bg-green-600 text-white' : i === step ? 'bg-green-600 text-white ring-4 ring-green-100' : 'bg-gray-200 text-gray-500'
-                }`}>
-                  {i < step ? <Check size={14} /> : i + 1}
+                <div
+                  className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 transition-all duration-300"
+                  style={i < step ? {
+                    background: 'linear-gradient(135deg, #10b981, #059669)',
+                    color: '#fff',
+                    boxShadow: '0 0 12px rgba(16,185,129,0.4)',
+                  } : i === step ? {
+                    background: 'linear-gradient(135deg, #10b981, #059669)',
+                    color: '#fff',
+                    boxShadow: '0 0 16px rgba(16,185,129,0.5)',
+                    outline: '3px solid rgba(16,185,129,0.2)',
+                  } : {
+                    background: 'rgba(255,255,255,0.06)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    color: '#4b5563',
+                  }}
+                >
+                  {i < step ? <Check size={13} /> : i + 1}
                 </div>
                 {i < STEPS.length - 1 && (
-                  <div className={`h-0.5 flex-1 ${i < step ? 'bg-green-600' : 'bg-gray-200'}`} />
+                  <div
+                    className="h-0.5 flex-1 rounded transition-all duration-300"
+                    style={{ background: i < step ? 'linear-gradient(90deg, #10b981, #059669)' : 'rgba(255,255,255,0.06)' }}
+                  />
                 )}
               </div>
             ))}
           </div>
 
-          <div className="card p-8">
-            <h2 className="text-xl font-bold text-gray-900 mb-1">{STEPS[step]}</h2>
+          {/* Card */}
+          <div className="rounded-2xl p-8" style={{
+            background: 'rgba(255,255,255,0.03)',
+            border: '1px solid rgba(255,255,255,0.08)',
+            boxShadow: '0 24px 64px rgba(0,0,0,0.4)',
+          }}>
+            <h2 className="text-xl font-extrabold text-white mb-1">{STEPS[step]}</h2>
 
             {/* Step 0: Basic info */}
             {step === 0 && (
@@ -165,18 +207,15 @@ export default function OnboardingPage() {
                   autoFocus
                 />
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Gender</label>
+                  <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Gender</label>
                   <div className="grid grid-cols-3 gap-3">
                     {(['male', 'female', 'other'] as const).map(g => (
                       <button
                         key={g}
                         type="button"
                         onClick={() => update('gender', g)}
-                        className={`py-2.5 rounded-xl border text-sm font-medium capitalize transition-all ${
-                          form.gender === g
-                            ? 'border-green-500 bg-green-50 text-green-700'
-                            : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
-                        }`}
+                        className="py-2.5 rounded-xl text-sm font-semibold capitalize transition-all duration-200"
+                        style={choiceBtnStyle(form.gender === g)}
                       >
                         {g}
                       </button>
@@ -233,14 +272,15 @@ export default function OnboardingPage() {
                       key={opt.value}
                       type="button"
                       onClick={() => update('goal', opt.value)}
-                      className={`w-full flex items-center justify-between px-4 py-3.5 rounded-xl border text-sm font-medium transition-all ${
-                        form.goal === opt.value
-                          ? 'border-green-500 bg-green-50 text-green-700'
-                          : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
-                      }`}
+                      className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl text-sm font-semibold transition-all duration-200"
+                      style={choiceBtnStyle(form.goal === opt.value)}
                     >
                       {opt.label}
-                      {form.goal === opt.value && <Check size={16} className="text-green-600" />}
+                      {form.goal === opt.value && (
+                        <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ background: 'rgba(16,185,129,0.3)' }}>
+                          <Check size={12} style={{ color: '#34d399' }} />
+                        </div>
+                      )}
                     </button>
                   ))}
                 </div>
@@ -263,14 +303,11 @@ export default function OnboardingPage() {
                       key={opt.value}
                       type="button"
                       onClick={() => update('diet_preference', opt.value)}
-                      className={`flex items-center justify-between px-4 py-3 rounded-xl border text-sm font-medium transition-all ${
-                        form.diet_preference === opt.value
-                          ? 'border-green-500 bg-green-50 text-green-700'
-                          : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
-                      }`}
+                      className="flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200"
+                      style={choiceBtnStyle(form.diet_preference === opt.value)}
                     >
                       <span>{opt.label}</span>
-                      {form.diet_preference === opt.value && <Check size={14} className="text-green-600 flex-shrink-0" />}
+                      {form.diet_preference === opt.value && <Check size={13} style={{ color: '#34d399' }} className="flex-shrink-0" />}
                     </button>
                   ))}
                 </div>
@@ -281,41 +318,49 @@ export default function OnboardingPage() {
             {step === 4 && (
               <div className="space-y-4 mt-5">
                 <p className="text-gray-500 text-sm">Here&apos;s your personalized nutrition plan based on your profile.</p>
-                <div className="bg-green-50 rounded-2xl p-5">
-                  <p className="text-sm font-medium text-green-800 mb-3">Daily Calorie Target</p>
-                  <p className="text-4xl font-bold text-green-700 mb-1">{targets.calories} <span className="text-lg font-medium text-green-500">kcal</span></p>
-                  <p className="text-xs text-green-600">Calculated for your {form.goal.replace('_', ' ')} goal</p>
+
+                {/* Calorie target hero */}
+                <div className="rounded-2xl p-5 text-center" style={{
+                  background: 'linear-gradient(135deg, rgba(16,185,129,0.12), rgba(6,182,212,0.08))',
+                  border: '1px solid rgba(16,185,129,0.25)',
+                  boxShadow: '0 8px 32px rgba(16,185,129,0.1)',
+                }}>
+                  <p className="text-xs font-bold text-brand-400 uppercase tracking-wider mb-2">Daily Calorie Target</p>
+                  <p className="text-5xl font-extrabold text-white">{targets.calories}
+                    <span className="text-xl font-semibold text-brand-400 ml-2">kcal</span>
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">Calculated for your {form.goal.replace('_', ' ')} goal</p>
                 </div>
+
+                {/* Macros */}
                 <div className="grid grid-cols-3 gap-3">
-                  <div className="bg-blue-50 rounded-xl p-3.5 text-center">
-                    <p className="text-lg font-bold text-blue-700">{targets.protein}g</p>
-                    <p className="text-xs text-blue-500 mt-0.5">Protein</p>
-                  </div>
-                  <div className="bg-orange-50 rounded-xl p-3.5 text-center">
-                    <p className="text-lg font-bold text-orange-700">{targets.carbs}g</p>
-                    <p className="text-xs text-orange-500 mt-0.5">Carbs</p>
-                  </div>
-                  <div className="bg-yellow-50 rounded-xl p-3.5 text-center">
-                    <p className="text-lg font-bold text-yellow-700">{targets.fat}g</p>
-                    <p className="text-xs text-yellow-500 mt-0.5">Fat</p>
-                  </div>
+                  {[
+                    { label: 'Protein', value: targets.protein, color: '#60a5fa', bg: 'rgba(59,130,246,0.1)', border: 'rgba(59,130,246,0.2)' },
+                    { label: 'Carbs',   value: targets.carbs,   color: '#fb923c', bg: 'rgba(249,115,22,0.1)', border: 'rgba(249,115,22,0.2)' },
+                    { label: 'Fat',     value: targets.fat,     color: '#facc15', bg: 'rgba(234,179,8,0.1)',  border: 'rgba(234,179,8,0.2)'  },
+                  ].map(m => (
+                    <div key={m.label} className="rounded-xl p-3.5 text-center"
+                      style={{ background: m.bg, border: `1px solid ${m.border}` }}>
+                      <p className="text-2xl font-extrabold" style={{ color: m.color }}>{m.value}g</p>
+                      <p className="text-xs font-semibold text-gray-500 mt-0.5">{m.label}</p>
+                    </div>
+                  ))}
                 </div>
-                <div className="bg-gray-50 rounded-xl p-4 space-y-2 text-sm">
-                  <div className="flex justify-between text-gray-600">
-                    <span>Name</span><span className="font-medium text-gray-900">{form.full_name}</span>
-                  </div>
-                  <div className="flex justify-between text-gray-600">
-                    <span>Age / Gender</span><span className="font-medium text-gray-900">{form.age} / {form.gender}</span>
-                  </div>
-                  <div className="flex justify-between text-gray-600">
-                    <span>Height / Weight</span><span className="font-medium text-gray-900">{form.height_cm}cm / {form.weight_kg}kg</span>
-                  </div>
-                  <div className="flex justify-between text-gray-600">
-                    <span>Goal</span><span className="font-medium text-gray-900 capitalize">{form.goal.replace('_', ' ')}</span>
-                  </div>
-                  <div className="flex justify-between text-gray-600">
-                    <span>Diet</span><span className="font-medium text-gray-900 capitalize">{form.diet_preference}</span>
-                  </div>
+
+                {/* Summary info */}
+                <div className="rounded-xl p-4 space-y-2.5 text-sm" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                  {[
+                    ['Name', form.full_name],
+                    ['Age / Gender', `${form.age} / ${form.gender}`],
+                    ['Height / Weight', `${form.height_cm}cm / ${form.weight_kg}kg`],
+                    ['Goal', form.goal.replace(/_/g, ' ')],
+                    ['Diet', form.diet_preference],
+                  ].map(([label, value]) => (
+                    <div key={label} className="flex justify-between">
+                      <span className="text-gray-500">{label}</span>
+                      <span className="font-semibold text-white capitalize">{value}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
@@ -325,7 +370,7 @@ export default function OnboardingPage() {
               {step > 0 ? (
                 <button
                   onClick={() => setStep(s => s - 1)}
-                  className="flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-gray-900"
+                  className="flex items-center gap-1.5 text-sm font-semibold text-gray-500 hover:text-white transition-colors"
                 >
                   <ChevronLeft size={16} /> Back
                 </button>
