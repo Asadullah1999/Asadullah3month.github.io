@@ -81,9 +81,18 @@ ${recentLogs && recentLogs.length > 0
   : 'No recent food logs.'}`
   }
 
+  const isSouthIndian = context.includes('south_indian')
   const prompt = `Based on this nutrition profile, generate a comprehensive weekly grocery shopping list.
 
 ${context}
+${isSouthIndian ? `
+South Indian cuisine focus — prioritise these staples:
+- Grains: idli rice, parboiled rice, semolina (rava), poha
+- Lentils/Dal: toor dal, urad dal, chana dal, moong dal
+- Fresh: coconut, curry leaves, drumstick, raw banana, brinjal, bottle gourd, tomatoes, onions, green chillies
+- Pantry: tamarind, sambar powder, rasam powder, mustard seeds, dried red chillies, asafoetida (hing), turmeric
+- Fats: coconut oil, ghee
+- Beverages: filter coffee decoction, buttermilk` : ''}
 
 Create a practical, budget-friendly grocery list for one week that supports the user's goals and diet preference.
 

@@ -63,7 +63,7 @@ Client Profile:
 - Weight: ${user.weight_kg ? user.weight_kg + 'kg' : 'unknown'}
 - Goal: ${user.goal?.replace('_', ' ') || 'unknown'}
 - Activity Level: ${user.activity_level?.replace('_', ' ') || 'unknown'}
-- Diet Preference: ${user.diet_preference || 'omnivore'}
+- Diet Preference: ${user.diet_preference || 'omnivore'}${user.diet_preference === 'south_indian' ? ' (suggest idli, dosa, sambar, rasam, upma, pongal, rice dishes, dal, coconut-based foods)' : ''}
 - Daily Targets: ${user.calorie_target || 2000} kcal, ${user.protein_target || 150}g protein, ${user.carb_target || 200}g carbs, ${user.fat_target || 65}g fat
 
 Recent 7-Day Log Summary:

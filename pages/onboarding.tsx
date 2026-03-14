@@ -26,13 +26,14 @@ const ACTIVITY_OPTIONS = [
 ]
 
 const DIET_OPTIONS = [
-  { value: 'omnivore',    label: 'Omnivore (everything)' },
-  { value: 'vegetarian',  label: 'Vegetarian' },
-  { value: 'vegan',       label: 'Vegan' },
-  { value: 'keto',        label: 'Keto / Low-carb' },
-  { value: 'paleo',       label: 'Paleo' },
-  { value: 'halal',       label: 'Halal' },
-  { value: 'kosher',      label: 'Kosher' },
+  { value: 'omnivore',     label: 'Omnivore (everything)' },
+  { value: 'vegetarian',   label: 'Vegetarian' },
+  { value: 'vegan',        label: 'Vegan' },
+  { value: 'keto',         label: 'Keto / Low-carb' },
+  { value: 'paleo',        label: 'Paleo' },
+  { value: 'halal',        label: 'Halal' },
+  { value: 'kosher',       label: 'Kosher' },
+  { value: 'south_indian', label: 'South Indian' },
 ]
 
 export default function OnboardingPage() {

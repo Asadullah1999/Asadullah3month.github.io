@@ -20,7 +20,7 @@ export type User = {
   weight_kg: number | null
   goal: 'lose_weight' | 'gain_muscle' | 'maintain' | 'improve_health' | null
   activity_level: 'sedentary' | 'light' | 'moderate' | 'active' | 'very_active' | null
-  diet_preference: 'omnivore' | 'vegetarian' | 'vegan' | 'keto' | 'paleo' | 'halal' | 'kosher' | null
+  diet_preference: 'omnivore' | 'vegetarian' | 'vegan' | 'keto' | 'paleo' | 'halal' | 'kosher' | 'south_indian' | null
   calorie_target: number | null
   protein_target: number | null
   carb_target: number | null
