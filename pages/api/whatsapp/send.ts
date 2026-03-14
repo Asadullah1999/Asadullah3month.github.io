@@ -33,7 +33,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .from('whatsapp_contacts')
       .select('phone_number, is_verified, opt_in')
       .eq('user_id', userId)
-      .single()
+      .single() as { data: any | null; error: unknown }
 
     if (!data || !data.is_verified || !data.opt_in) {
       return res.status(400).json({ error: 'User does not have verified WhatsApp or has opted out' })

@@ -91,8 +91,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     } else if (lowerText === 'status') {
       const today = new Date().toISOString().split('T')[0]
       const [{ data: log }, { data: user }] = await Promise.all([
-        db.from('daily_logs').select('total_calories, water_ml').eq('user_id', userId).eq('log_date', today).maybeSingle(),
-        db.from('users').select('calorie_target').eq('id', userId).single(),
+        db.from('daily_logs').select('total_calories, water_ml').eq('user_id', userId).eq('log_date', today).maybeSingle() as Promise<{ data: any | null; error: unknown }>,
+        db.from('users').select('calorie_target').eq('id', userId).single() as Promise<{ data: any | null; error: unknown }>,
       ])
 
       const consumed = log?.total_calories || 0
@@ -109,7 +109,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const ml = parseInt(lowerText.split(' ')[1])
       if (!isNaN(ml) && ml > 0) {
         const today = new Date().toISOString().split('T')[0]
-        const { data: existing } = await db.from('daily_logs').select('id, water_ml').eq('user_id', userId).eq('log_date', today).maybeSingle()
+        const { data: existing } = await (db.from('daily_logs').select('id, water_ml').eq('user_id', userId).eq('log_date', today).maybeSingle() as Promise<{ data: any | null; error: unknown }>)
         const newWater = (existing?.water_ml || 0) + ml
 
         if (existing) {
