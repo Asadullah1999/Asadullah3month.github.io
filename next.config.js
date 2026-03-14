@@ -11,5 +11,6 @@ const nextConfig = {
     domains: ['avatars.githubusercontent.com', 'lh3.googleusercontent.com'],
   },
 }
+// build fix
 
 module.exports = nextConfig
