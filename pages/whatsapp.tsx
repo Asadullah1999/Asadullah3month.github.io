@@ -52,12 +52,14 @@ export default function WhatsAppPage() {
     if (!phone || phone.length < 8) { toast.error('Please enter a valid phone number with country code'); return }
     setSending(true)
     const { data: { session } } = await supabase.auth.getSession()
-    if (!session) return
-    const verifyCode = Math.floor(100000 + Math.random() * 900000).toString()
-    const { error } = await supabase.from('whatsapp_contacts').upsert({ user_id: session.user.id, phone_number: phone, is_verified: false, verification_code: verifyCode, opt_in: true }, { onConflict: 'user_id' })
-    if (error) { toast.error(error.message); setSending(false); return }
-    const webhookUrl = process.env.NEXT_PUBLIC_N8N_WEBHOOK_URL
-    if (webhookUrl) await fetch(`${webhookUrl}/send-verification`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone, code: verifyCode, userId: session.user.id }) }).catch(() => null)
+    if (!session) { setSending(false); return }
+    const res = await fetch('/api/whatsapp/send-verification', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: session.user.id, phone }),
+    })
+    const data = await res.json()
+    if (!res.ok) { toast.error(data.error || 'Failed to send code'); setSending(false); return }
     toast.success('Verification code sent! Check your WhatsApp.')
     setStep('verify')
     setSending(false)

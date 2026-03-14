@@ -6,7 +6,7 @@ import { sounds } from '@/lib/sounds'
 import {
   LayoutDashboard, User, MessageCircle, ClipboardList,
   TrendingUp, Settings, LogOut, Bell, ShieldCheck,
-  Bot, ShoppingCart, Zap, Dumbbell, Scale, Moon,
+  Bot, ShoppingCart, Zap, Dumbbell, Scale, Moon, Crown,
 } from 'lucide-react'
 
 const NAV = [
@@ -174,6 +174,19 @@ export default function Sidebar({ isAdmin, user }: SidebarProps) {
       {/* Footer */}
       <div className="px-3 py-4 space-y-0.5"
         style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+        <Link
+          href="/pricing"
+          onClick={() => sounds.click()}
+          className={cn(
+            'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200',
+            router.pathname === '/pricing'
+              ? 'text-amber-400'
+              : 'text-gray-500 hover:text-amber-400 hover:bg-amber-400/[0.06]'
+          )}
+        >
+          <Crown size={17} className={router.pathname === '/pricing' ? 'text-amber-400' : 'text-gray-600'} />
+          Upgrade
+        </Link>
         <Link
           href="/settings"
           onClick={() => sounds.click()}
