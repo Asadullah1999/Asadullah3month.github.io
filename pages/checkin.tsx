@@ -28,14 +28,23 @@ const MOOD_OPTIONS = [
 ]
 
 const QUICK_FOODS: MealItem[] = [
-  { name: 'Boiled egg',      calories: 77,  protein: 6,  carbs: 1,  fat: 5,  quantity: '1 large' },
-  { name: 'Chicken breast',  calories: 165, protein: 31, carbs: 0,  fat: 4,  quantity: '100g' },
-  { name: 'White rice',      calories: 206, protein: 4,  carbs: 45, fat: 0,  quantity: '1 cup' },
-  { name: 'Whole wheat bread', calories: 69, protein: 4, carbs: 12, fat: 1,  quantity: '1 slice' },
-  { name: 'Banana',          calories: 105, protein: 1,  carbs: 27, fat: 0,  quantity: '1 medium' },
-  { name: 'Oats',            calories: 147, protein: 5,  carbs: 25, fat: 3,  quantity: '40g dry' },
-  { name: 'Greek yogurt',    calories: 100, protein: 17, carbs: 6,  fat: 0,  quantity: '170g' },
-  { name: 'Almonds',         calories: 164, protein: 6,  carbs: 6,  fat: 14, quantity: '28g' },
+  { name: 'Boiled egg',        calories: 77,  protein: 6,  carbs: 1,  fat: 5,  quantity: '1 large' },
+  { name: 'Chicken breast',    calories: 165, protein: 31, carbs: 0,  fat: 4,  quantity: '100g' },
+  { name: 'White rice',        calories: 206, protein: 4,  carbs: 45, fat: 0,  quantity: '1 cup' },
+  { name: 'Whole wheat bread', calories: 69,  protein: 4,  carbs: 12, fat: 1,  quantity: '1 slice' },
+  { name: 'Banana',            calories: 105, protein: 1,  carbs: 27, fat: 0,  quantity: '1 medium' },
+  { name: 'Oats',              calories: 147, protein: 5,  carbs: 25, fat: 3,  quantity: '40g dry' },
+  { name: 'Greek yogurt',      calories: 100, protein: 17, carbs: 6,  fat: 0,  quantity: '170g' },
+  { name: 'Almonds',           calories: 164, protein: 6,  carbs: 6,  fat: 14, quantity: '28g' },
+  // South Indian foods
+  { name: 'Idli',              calories: 74,  protein: 3,  carbs: 15, fat: 0,  quantity: '2 pieces' },
+  { name: 'Plain Dosa',        calories: 168, protein: 4,  carbs: 32, fat: 3,  quantity: '1 medium' },
+  { name: 'Sambar',            calories: 112, protein: 6,  carbs: 18, fat: 2,  quantity: '1 cup' },
+  { name: 'Upma',              calories: 210, protein: 5,  carbs: 38, fat: 5,  quantity: '1 cup' },
+  { name: 'Vada',              calories: 97,  protein: 4,  carbs: 14, fat: 3,  quantity: '1 piece' },
+  { name: 'Pongal',            calories: 268, protein: 8,  carbs: 48, fat: 5,  quantity: '1 cup' },
+  { name: 'Rasam',             calories: 48,  protein: 2,  carbs: 8,  fat: 1,  quantity: '1 cup' },
+  { name: 'Coconut Chutney',   calories: 72,  protein: 1,  carbs: 3,  fat: 7,  quantity: '2 tbsp' },
 ]
 
 function blankItem(): MealItem {
