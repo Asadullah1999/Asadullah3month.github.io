@@ -6,7 +6,7 @@ import { sounds } from '@/lib/sounds'
 import {
   LayoutDashboard, User, MessageCircle, ClipboardList,
   TrendingUp, Settings, LogOut, Bell, ShieldCheck,
-  Bot, ShoppingCart, Zap, Dumbbell, Scale, Moon, Crown,
+  Bot, ShoppingCart, Zap, Dumbbell, Scale, Moon, Crown, MessagesSquare,
 } from 'lucide-react'
 
 const NAV = [
@@ -156,16 +156,28 @@ export default function Sidebar({ isAdmin, user }: SidebarProps) {
               onClick={() => sounds.nav()}
               className={cn(
                 'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200',
-                router.pathname.startsWith('/admin')
+                router.pathname === '/admin'
                   ? 'text-violet-400 border border-violet-500/20'
                   : 'nav-link'
               )}
-              style={router.pathname.startsWith('/admin') ? {
-                background: 'rgba(139,92,246,0.1)',
-              } : {}}
+              style={router.pathname === '/admin' ? { background: 'rgba(139,92,246,0.1)' } : {}}
             >
-              <ShieldCheck size={17} className={router.pathname.startsWith('/admin') ? 'text-violet-400' : 'text-gray-600'} />
+              <ShieldCheck size={17} className={router.pathname === '/admin' ? 'text-violet-400' : 'text-gray-600'} />
               Admin Panel
+            </Link>
+            <Link
+              href="/admin/conversations"
+              onClick={() => sounds.nav()}
+              className={cn(
+                'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200',
+                router.pathname === '/admin/conversations'
+                  ? 'text-violet-400 border border-violet-500/20'
+                  : 'nav-link'
+              )}
+              style={router.pathname === '/admin/conversations' ? { background: 'rgba(139,92,246,0.1)' } : {}}
+            >
+              <MessagesSquare size={17} className={router.pathname === '/admin/conversations' ? 'text-violet-400' : 'text-gray-600'} />
+              Conversations
             </Link>
           </>
         )}

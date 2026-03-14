@@ -124,6 +124,20 @@ Guidelines:
     }
     const reply = data.choices?.[0]?.message?.content || 'I could not generate a response. Please try again.'
 
+    // Save user message + AI reply to DB (fire-and-forget, don't fail the request)
+    if (userId) {
+      const lastUserMsg = [...messages].reverse().find(m => m.role === 'user')
+      if (lastUserMsg) {
+        createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+          .from('chat_messages')
+          .insert([
+            { user_id: userId, role: 'user',      content: lastUserMsg.content },
+            { user_id: userId, role: 'assistant', content: reply },
+          ])
+          .then(({ error }) => { if (error) console.error('chat_messages insert error:', error) })
+      }
+    }
+
     return res.status(200).json({ reply })
   } catch (err) {
     console.error('Chat error:', err)

@@ -213,3 +213,36 @@ create trigger users_updated_at before update on public.users
   for each row execute procedure public.set_updated_at();
 create trigger subscriptions_updated_at before update on public.subscriptions
   for each row execute procedure public.set_updated_at();
+
+-- ─────────────────────────────────────────────
+-- CHAT MESSAGES (AI Nutritionist conversations)
+-- ─────────────────────────────────────────────
+create table if not exists public.chat_messages (
+  id uuid primary key default uuid_generate_v4(),
+  user_id uuid references public.users(id) on delete cascade not null,
+  role text not null check (role in ('user', 'assistant')),
+  content text not null,
+  created_at timestamptz default now()
+);
+
+-- Index for fast per-user queries
+create index if not exists chat_messages_user_id_idx
+  on public.chat_messages(user_id, created_at desc);
+
+-- RLS
+alter table public.chat_messages enable row level security;
+
+-- Users can read/insert their own messages
+create policy "chat_select_own" on public.chat_messages
+  for select using (auth.uid() = user_id);
+create policy "chat_insert_own" on public.chat_messages
+  for insert with check (auth.uid() = user_id);
+
+-- Admins/nutritionists can read all messages
+create policy "chat_admin_read" on public.chat_messages
+  for select using (
+    exists (
+      select 1 from public.users u
+      where u.id = auth.uid() and u.role in ('admin','nutritionist')
+    )
+  );
