@@ -89,6 +89,14 @@ export type Subscription = {
   updated_at: string
 }
 
+export type ChatMessage = {
+  id: string
+  user_id: string
+  role: 'user' | 'assistant'
+  content: string
+  created_at: string
+}
+
 export type DietPlan = {
   id: string
   user_id: string
@@ -139,6 +147,11 @@ export type Database = {
         Row: DietPlan
         Insert: Partial<DietPlan> & { user_id: string; title: string; calorie_target: number }
         Update: Partial<DietPlan>
+      }
+      chat_messages: {
+        Row: ChatMessage
+        Insert: Partial<ChatMessage> & { user_id: string; role: ChatMessage['role']; content: string }
+        Update: Partial<ChatMessage>
       }
     }
   }

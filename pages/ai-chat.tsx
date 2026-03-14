@@ -12,9 +12,6 @@ type Message = {
   timestamp: Date
 }
 
-const CHAT_STORAGE_KEY = 'fahmifit_ai_chat_history'
-const MAX_STORED_MESSAGES = 100
-
 const SUGGESTED_PROMPTS = [
   { text: "How can I increase my protein intake?", icon: <Dumbbell size={13} /> },
   { text: "What should I eat before a workout?", icon: <Zap size={13} /> },
@@ -31,20 +28,8 @@ const WELCOME_MESSAGE: Message = {
   timestamp: new Date(),
 }
 
-function loadStoredMessages(): Message[] {
-  if (typeof window === 'undefined') return [WELCOME_MESSAGE]
-  try {
-    const raw = localStorage.getItem(CHAT_STORAGE_KEY)
-    if (!raw) return [WELCOME_MESSAGE]
-    const parsed = JSON.parse(raw) as Array<Omit<Message, 'timestamp'> & { timestamp: string }>
-    return parsed.map(m => ({ ...m, timestamp: new Date(m.timestamp) }))
-  } catch {
-    return [WELCOME_MESSAGE]
-  }
-}
-
 export default function AIChatPage() {
-  const [messages, setMessages] = useState<Message[]>(loadStoredMessages)
+  const [messages, setMessages] = useState<Message[]>([WELCOME_MESSAGE])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
@@ -53,20 +38,30 @@ export default function AIChatPage() {
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
-      if (data.user) setUserId(data.user.id)
+      if (data.user) {
+        setUserId(data.user.id)
+        loadMessagesFromDB(data.user.id)
+      }
     })
   }, [])
 
-  // Persist messages to localStorage whenever they change
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    try {
-      const toStore = messages.slice(-MAX_STORED_MESSAGES)
-      localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(toStore))
-    } catch {
-      // localStorage full or unavailable — ignore
+  async function loadMessagesFromDB(uid: string) {
+    const { data } = await supabase
+      .from('chat_messages')
+      .select('id, role, content, created_at')
+      .eq('user_id', uid)
+      .order('created_at', { ascending: true })
+      .limit(50)
+
+    if (data && data.length > 0) {
+      setMessages(data.map(m => ({
+        id: m.id,
+        role: m.role as 'user' | 'assistant',
+        content: m.content,
+        timestamp: new Date(m.created_at),
+      })))
     }
-  }, [messages])
+  }
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -130,7 +125,6 @@ export default function AIChatPage() {
   }
 
   const clearChat = () => {
-    localStorage.removeItem(CHAT_STORAGE_KEY)
     setMessages([{ ...WELCOME_MESSAGE, timestamp: new Date() }])
   }
 
