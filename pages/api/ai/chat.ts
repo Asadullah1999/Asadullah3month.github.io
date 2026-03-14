@@ -36,7 +36,7 @@ export default async function handler(
   let userContext = 'No client profile data available.'
 
   if (userId) {
-    const { data: user } = await supabase
+    const { data: user } = await (supabase as any)
       .from('users')
       .select('full_name, age, gender, height_cm, weight_kg, goal, activity_level, diet_preference, calorie_target, protein_target, carb_target, fat_target')
       .eq('id', userId)
@@ -46,7 +46,7 @@ export default async function handler(
     const sevenDaysAgo = new Date(today)
     sevenDaysAgo.setDate(today.getDate() - 7)
 
-    const { data: recentLogs } = await supabase
+    const { data: recentLogs } = await (supabase as any)
       .from('daily_logs')
       .select('log_date, total_calories, total_protein, total_carbs, total_fat, water_ml, mood')
       .eq('user_id', userId)
@@ -68,7 +68,7 @@ Client Profile:
 
 Recent 7-Day Log Summary:
 ${recentLogs && recentLogs.length > 0
-  ? recentLogs.map(log =>
+  ? recentLogs.map((log: any) =>
       `- ${log.log_date}: ${log.total_calories || 0} kcal, ${log.total_protein || 0}g protein, water: ${log.water_ml || 0}ml, mood: ${log.mood || 'not logged'}`
     ).join('\n')
   : '- No recent logs available'}`
