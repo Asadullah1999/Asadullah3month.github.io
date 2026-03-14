@@ -206,7 +206,7 @@ export default function MealScannerPage() {
 
   return (
     <DashboardLayout title="AI Meal Scanner">
-      <Head><title>AI Meal Scanner – NutriCoach</title></Head>
+      <Head><title>AI Meal Scanner – FahmiFit</title></Head>
 
       <div className="max-w-2xl mx-auto space-y-6">
         {/* Header */}

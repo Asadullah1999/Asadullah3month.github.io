@@ -63,7 +63,7 @@ export default async function handler(
       `https://world.openfoodfacts.org/api/v0/product/${cleanBarcode}.json`,
       {
         headers: {
-          'User-Agent': 'NutriCoach/1.0 (nutrition tracking app)',
+          'User-Agent': 'FahmiFit/1.0 (nutrition tracking app)',
         },
       }
     )

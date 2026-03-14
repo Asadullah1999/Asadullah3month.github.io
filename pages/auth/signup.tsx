@@ -3,7 +3,7 @@ import Head from 'next/head'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { supabase } from '@/lib/supabase'
-import { Leaf, Mail, Lock, User, Eye, EyeOff } from 'lucide-react'
+import { Zap, Mail, Lock, User, Eye, EyeOff, ChevronRight } from 'lucide-react'
 import toast from 'react-hot-toast'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
@@ -65,25 +65,77 @@ export default function SignupPage() {
 
   return (
     <>
-      <Head><title>Create Account · NutriCoach</title></Head>
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-8">
-        <div className="w-full max-w-md">
-          <div className="text-center mb-8">
-            <Link href="/" className="inline-flex items-center gap-2 mb-6">
-              <div className="w-10 h-10 rounded-2xl bg-green-600 flex items-center justify-center">
-                <Leaf className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-xl font-bold text-gray-900">NutriCoach</span>
-            </Link>
-            <h1 className="text-2xl font-bold text-gray-900">Create your account</h1>
-            <p className="text-gray-500 mt-1.5 text-sm">Start your nutrition journey today</p>
+      <Head><title>Create Account · FahmiFit</title></Head>
+      <div className="min-h-screen flex" style={{ background: '#05050f' }}>
+        {/* Left: decorative */}
+        <div className="hidden lg:flex flex-1 flex-col items-center justify-center relative overflow-hidden p-12"
+          style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.06) 0%, rgba(139,92,246,0.06) 100%)' }}>
+          <div className="absolute top-1/3 left-1/4 w-72 h-72 rounded-full opacity-20 animate-aurora"
+            style={{ background: 'radial-gradient(circle, rgba(139,92,246,0.8), transparent)', filter: 'blur(70px)' }} />
+          <div className="absolute bottom-1/4 right-1/4 w-64 h-64 rounded-full opacity-15 animate-aurora"
+            style={{ background: 'radial-gradient(circle, rgba(16,185,129,0.8), transparent)', filter: 'blur(60px)', animationDelay: '3s' }} />
+          <div className="relative z-10 text-center max-w-md">
+            <div className="w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-8"
+              style={{
+                background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)',
+                boxShadow: '0 0 60px rgba(139,92,246,0.5)',
+              }}>
+              <Zap size={36} className="text-white" fill="white" />
+            </div>
+            <h1 className="text-4xl font-extrabold text-white mb-4 tracking-tight">
+              Join <span style={{
+                background: 'linear-gradient(135deg, #8b5cf6, #06b6d4)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+              }}>FahmiFit</span>
+            </h1>
+            <p className="text-gray-400 text-lg leading-relaxed">
+              Start your personalized nutrition journey today. AI-powered coaching, WhatsApp reminders, and more.
+            </p>
+            <div className="grid grid-cols-3 gap-4 mt-10">
+              {[['Free','to start'],['5 min','setup'],['AI','powered']].map(([v,l]) => (
+                <div key={l} className="p-4 rounded-2xl text-center"
+                  style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                  <p className="text-2xl font-extrabold" style={{
+                    background: 'linear-gradient(135deg, #8b5cf6, #06b6d4)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                  }}>{v}</p>
+                  <p className="text-xs text-gray-500 mt-1">{l}</p>
+                </div>
+              ))}
+            </div>
           </div>
+        </div>
 
-          <div className="card p-8">
-            <button
-              onClick={handleGoogleSignup}
-              className="w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors mb-5"
-            >
+        {/* Right: form */}
+        <div className="flex-1 lg:max-w-md flex flex-col justify-center px-8 py-12">
+          <div className="max-w-sm mx-auto w-full">
+            {/* Mobile logo */}
+            <div className="lg:hidden flex items-center gap-2.5 mb-10">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center"
+                style={{ background: 'linear-gradient(135deg, #10b981, #06b6d4)', boxShadow: '0 0 20px rgba(16,185,129,0.4)' }}>
+                <Zap size={18} className="text-white" fill="white" />
+              </div>
+              <span className="font-extrabold text-xl" style={{
+                background: 'linear-gradient(135deg, #10b981, #06b6d4)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+              }}>FahmiFit</span>
+            </div>
+
+            <h2 className="text-3xl font-extrabold text-white mb-2">Create account</h2>
+            <p className="text-gray-500 mb-8">Start your nutrition journey for free</p>
+
+            {/* Google */}
+            <button onClick={handleGoogleSignup}
+              className="w-full flex items-center justify-center gap-3 py-3 rounded-xl text-sm font-semibold text-white transition-all duration-200 mb-6"
+              style={{
+                background: 'rgba(255,255,255,0.05)',
+                border: '1px solid rgba(255,255,255,0.12)',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.18)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)' }}>
               <svg className="w-4 h-4" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                 <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -93,13 +145,10 @@ export default function SignupPage() {
               Continue with Google
             </button>
 
-            <div className="relative mb-5">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200" />
-              </div>
-              <div className="relative flex justify-center">
-                <span className="px-3 bg-white text-xs text-gray-400">or sign up with email</span>
-              </div>
+            <div className="flex items-center gap-3 mb-6">
+              <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.08)' }} />
+              <span className="text-xs text-gray-600 font-medium">or sign up with email</span>
+              <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.08)' }} />
             </div>
 
             <form onSubmit={handleSignup} className="space-y-4">
@@ -109,7 +158,7 @@ export default function SignupPage() {
                 value={form.name}
                 onChange={e => update('name', e.target.value)}
                 placeholder="Asadullah Amanullah"
-                leftIcon={<User size={16} />}
+                leftIcon={<User size={15} />}
                 required
                 autoComplete="name"
               />
@@ -119,14 +168,18 @@ export default function SignupPage() {
                 value={form.email}
                 onChange={e => update('email', e.target.value)}
                 placeholder="you@example.com"
-                leftIcon={<Mail size={16} />}
+                leftIcon={<Mail size={15} />}
                 required
                 autoComplete="email"
               />
+
+              {/* Password */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
+                <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Password</label>
                 <div className="relative">
-                  <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none">
+                    <Lock size={15} />
+                  </div>
                   <input
                     type={showPass ? 'text' : 'password'}
                     value={form.password}
@@ -135,21 +188,27 @@ export default function SignupPage() {
                     required
                     minLength={8}
                     autoComplete="new-password"
-                    className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent placeholder:text-gray-400"
+                    className="w-full pl-10 pr-10 py-3 rounded-xl text-sm text-white placeholder:text-gray-600 focus:outline-none focus:shadow-[0_0_0_3px_rgba(16,185,129,0.12)]"
+                    style={{
+                      background: 'rgba(255,255,255,0.04)',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.3)',
+                    }}
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowPass(!showPass)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
+                  <button type="button" onClick={() => setShowPass(!showPass)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors">
+                    {showPass ? <EyeOff size={15} /> : <Eye size={15} />}
                   </button>
                 </div>
               </div>
+
+              {/* Confirm password */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Confirm password</label>
+                <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Confirm password</label>
                 <div className="relative">
-                  <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none">
+                    <Lock size={15} />
+                  </div>
                   <input
                     type={showPass ? 'text' : 'password'}
                     value={form.confirm}
@@ -157,30 +216,35 @@ export default function SignupPage() {
                     placeholder="Repeat your password"
                     required
                     autoComplete="new-password"
-                    className="w-full pl-10 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent placeholder:text-gray-400"
+                    className="w-full pl-10 py-3 rounded-xl text-sm text-white placeholder:text-gray-600 focus:outline-none focus:shadow-[0_0_0_3px_rgba(16,185,129,0.12)]"
+                    style={{
+                      background: 'rgba(255,255,255,0.04)',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.3)',
+                    }}
                   />
                 </div>
               </div>
 
               <Button type="submit" loading={loading} fullWidth size="lg">
-                Create account
+                Create account <ChevronRight size={16} />
               </Button>
 
-              <p className="text-center text-xs text-gray-400">
+              <p className="text-center text-xs text-gray-600">
                 By signing up you agree to our{' '}
-                <Link href="/terms" className="text-green-600 hover:underline">Terms</Link>{' '}
+                <Link href="/terms" className="text-brand-400 hover:text-brand-300 transition-colors">Terms</Link>{' '}
                 and{' '}
-                <Link href="/privacy" className="text-green-600 hover:underline">Privacy Policy</Link>
+                <Link href="/privacy" className="text-brand-400 hover:text-brand-300 transition-colors">Privacy Policy</Link>
               </p>
             </form>
-          </div>
 
-          <p className="text-center text-sm text-gray-500 mt-6">
-            Already have an account?{' '}
-            <Link href="/auth/login" className="text-green-600 font-medium hover:text-green-700">
-              Sign in
-            </Link>
-          </p>
+            <p className="text-center text-sm text-gray-600 mt-6">
+              Already have an account?{' '}
+              <Link href="/auth/login" className="text-brand-400 font-semibold hover:text-brand-300 transition-colors">
+                Sign in
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </>

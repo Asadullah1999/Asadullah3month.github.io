@@ -46,14 +46,21 @@ export default function DashboardLayout({ children, title, pageTitle }: Dashboar
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 rounded-xl bg-green-600 flex items-center justify-center animate-pulse">
-            <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M3.293 9.707a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L4.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
+      <div className="min-h-screen flex items-center justify-center" style={{ background: '#05050f' }}>
+        <div className="flex flex-col items-center gap-5">
+          <div className="w-14 h-14 rounded-2xl flex items-center justify-center animate-pulse-glow"
+            style={{
+              background: 'linear-gradient(135deg, #10b981, #06b6d4)',
+              boxShadow: '0 0 40px rgba(16,185,129,0.5), 0 0 80px rgba(16,185,129,0.2)',
+            }}>
+            <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           </div>
-          <p className="text-sm text-gray-500">Loading...</p>
+          <div className="text-center">
+            <p className="text-base font-bold gradient-text mb-1">FahmiFit</p>
+            <p className="text-xs text-gray-600 tracking-widest uppercase font-semibold">Loading your dashboard...</p>
+          </div>
         </div>
       </div>
     )
@@ -64,10 +71,10 @@ export default function DashboardLayout({ children, title, pageTitle }: Dashboar
   return (
     <>
       <Head>
-        <title>{pageTitle ? `${pageTitle} · NutriCoach` : 'NutriCoach'}</title>
+        <title>{pageTitle ? `${pageTitle} · FahmiFit` : 'FahmiFit'}</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen" style={{ background: '#05050f' }}>
         <Sidebar isAdmin={isAdmin} user={user || undefined} />
         <Header title={title} isAdmin={isAdmin} />
         <main className="lg:ml-60 pt-14 lg:pt-0">

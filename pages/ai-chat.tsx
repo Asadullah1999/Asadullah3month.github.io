@@ -1,10 +1,9 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import Head from 'next/head'
 import DashboardLayout from '@/components/layout/DashboardLayout'
-import Button from '@/components/ui/Button'
-import Card from '@/components/ui/Card'
+import { supabase } from '@/lib/supabase'
 import toast from 'react-hot-toast'
-import { Send, Bot, User, Trash2, Sparkles } from 'lucide-react'
+import { Send, Bot, User, Trash2, Sparkles, Zap, Brain, Leaf, Dumbbell, Heart } from 'lucide-react'
 
 type Message = {
   id: string
@@ -13,28 +12,61 @@ type Message = {
   timestamp: Date
 }
 
+const CHAT_STORAGE_KEY = 'fahmifit_ai_chat_history'
+const MAX_STORED_MESSAGES = 100
+
 const SUGGESTED_PROMPTS = [
-  "How can I increase my protein intake without eating more meat?",
-  "What should I eat before and after a workout?",
-  "I'm craving snacks at night — what are healthy options?",
-  "Am I eating enough calories based on my goals?",
-  "How can I improve my energy levels through diet?",
-  "What foods help reduce inflammation?",
+  { text: "How can I increase my protein intake?", icon: <Dumbbell size={13} /> },
+  { text: "What should I eat before a workout?", icon: <Zap size={13} /> },
+  { text: "Healthy late-night snack options?", icon: <Leaf size={13} /> },
+  { text: "Am I eating enough calories?", icon: <Heart size={13} /> },
+  { text: "How to improve energy through diet?", icon: <Brain size={13} /> },
+  { text: "Foods that reduce inflammation?", icon: <Sparkles size={13} /> },
 ]
 
+const WELCOME_MESSAGE: Message = {
+  id: 'welcome',
+  role: 'assistant',
+  content: "Hi! I'm your personal AI nutritionist. I have access to your profile and recent food logs, so I can give you personalized advice. What would you like to know?",
+  timestamp: new Date(),
+}
+
+function loadStoredMessages(): Message[] {
+  if (typeof window === 'undefined') return [WELCOME_MESSAGE]
+  try {
+    const raw = localStorage.getItem(CHAT_STORAGE_KEY)
+    if (!raw) return [WELCOME_MESSAGE]
+    const parsed = JSON.parse(raw) as Array<Omit<Message, 'timestamp'> & { timestamp: string }>
+    return parsed.map(m => ({ ...m, timestamp: new Date(m.timestamp) }))
+  } catch {
+    return [WELCOME_MESSAGE]
+  }
+}
+
 export default function AIChatPage() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: 'welcome',
-      role: 'assistant',
-      content: "Hi! I'm your personal AI nutritionist. I have access to your profile and recent food logs, so I can give you personalized advice. What would you like to know?",
-      timestamp: new Date(),
-    },
-  ])
+  const [messages, setMessages] = useState<Message[]>(loadStoredMessages)
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
+  const [userId, setUserId] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user) setUserId(data.user.id)
+    })
+  }, [])
+
+  // Persist messages to localStorage whenever they change
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    try {
+      const toStore = messages.slice(-MAX_STORED_MESSAGES)
+      localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(toStore))
+    } catch {
+      // localStorage full or unavailable — ignore
+    }
+  }, [messages])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -60,13 +92,12 @@ export default function AIChatPage() {
         .filter((m) => m.id !== 'welcome')
         .map((m) => ({ role: m.role, content: m.content }))
 
-      // Always send at least the current message
       const payload = history.length > 0 ? history : [{ role: 'user' as const, content: trimmed }]
 
       const response = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: payload }),
+        body: JSON.stringify({ messages: payload, userId }),
       })
 
       const data = await response.json()
@@ -89,7 +120,7 @@ export default function AIChatPage() {
     } finally {
       setLoading(false)
     }
-  }, [messages, loading])
+  }, [messages, loading, userId])
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -99,12 +130,8 @@ export default function AIChatPage() {
   }
 
   const clearChat = () => {
-    setMessages([{
-      id: 'welcome',
-      role: 'assistant',
-      content: "Hi! I'm your personal AI nutritionist. I have access to your profile and recent food logs, so I can give you personalized advice. What would you like to know?",
-      timestamp: new Date(),
-    }])
+    localStorage.removeItem(CHAT_STORAGE_KEY)
+    setMessages([{ ...WELCOME_MESSAGE, timestamp: new Date() }])
   }
 
   const formatTime = (date: Date) =>
@@ -112,115 +139,191 @@ export default function AIChatPage() {
 
   return (
     <DashboardLayout title="AI Nutritionist Chat">
-      <Head><title>AI Nutritionist Chat – NutriCoach</title></Head>
+      <Head><title>AI Nutritionist · FahmiFit</title></Head>
 
-      <div className="max-w-3xl mx-auto flex flex-col h-[calc(100vh-8rem)]">
+      <div className="max-w-3xl mx-auto flex flex-col" style={{ height: 'calc(100vh - 8rem)' }}>
         {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">AI Nutritionist</h1>
-            <p className="text-gray-500 text-sm mt-0.5">Personalized advice based on your profile &amp; data</p>
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl flex items-center justify-center"
+              style={{
+                background: 'linear-gradient(135deg, #10b981, #06b6d4)',
+                boxShadow: '0 0 24px rgba(16,185,129,0.4)',
+              }}>
+              <Bot size={22} className="text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl font-extrabold text-white">AI Nutritionist</h1>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <div className="w-1.5 h-1.5 rounded-full bg-brand-400"
+                  style={{ boxShadow: '0 0 6px rgba(16,185,129,0.8)' }} />
+                <span className="text-xs text-brand-400 font-semibold">Online · Personalized to your data</span>
+              </div>
+            </div>
           </div>
-          <Button variant="ghost" onClick={clearChat} className="flex items-center gap-2 text-gray-500">
-            <Trash2 size={16} /> Clear chat
-          </Button>
+          <button
+            onClick={clearChat}
+            className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium text-gray-500 hover:text-red-400 transition-all duration-200"
+            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
+            onMouseEnter={e => (e.currentTarget.style.background = 'rgba(239,68,68,0.08)')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.04)')}
+          >
+            <Trash2 size={14} /> Clear chat
+          </button>
         </div>
 
-        {/* Chat area */}
-        <Card className="flex-1 flex flex-col overflow-hidden">
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {/* Chat container */}
+        <div className="flex-1 flex flex-col overflow-hidden rounded-2xl"
+          style={{
+            background: 'rgba(255,255,255,0.025)',
+            border: '1px solid rgba(255,255,255,0.08)',
+            boxShadow: '0 20px 60px rgba(0,0,0,0.4)',
+          }}>
+          {/* Messages */}
+          <div className="flex-1 overflow-y-auto p-5 space-y-5">
             {messages.map((msg) => (
               <div key={msg.id} className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
                 {/* Avatar */}
-                <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                  msg.role === 'assistant' ? 'bg-green-100' : 'bg-blue-100'
-                }`}>
-                  {msg.role === 'assistant'
-                    ? <Bot size={16} className="text-green-600" />
-                    : <User size={16} className="text-blue-600" />
-                  }
-                </div>
+                {msg.role === 'assistant' ? (
+                  <div className="flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center"
+                    style={{
+                      background: 'linear-gradient(135deg, #10b981, #06b6d4)',
+                      boxShadow: '0 0 12px rgba(16,185,129,0.4)',
+                    }}>
+                    <Bot size={15} className="text-white" />
+                  </div>
+                ) : (
+                  <div className="flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center"
+                    style={{
+                      background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)',
+                      boxShadow: '0 0 12px rgba(139,92,246,0.4)',
+                    }}>
+                    <User size={15} className="text-white" />
+                  </div>
+                )}
 
                 {/* Bubble */}
-                <div className={`max-w-[80%] space-y-1 ${msg.role === 'user' ? 'items-end' : 'items-start'} flex flex-col`}>
-                  <div className={`rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap ${
-                    msg.role === 'assistant'
-                      ? 'bg-gray-50 text-gray-800 rounded-tl-sm'
-                      : 'bg-green-600 text-white rounded-tr-sm'
-                  }`}>
+                <div className={`max-w-[78%] flex flex-col gap-1 ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
+                  <div
+                    className="rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap"
+                    style={msg.role === 'assistant' ? {
+                      background: 'rgba(255,255,255,0.05)',
+                      border: '1px solid rgba(255,255,255,0.08)',
+                      color: '#e2e8f0',
+                      borderTopLeftRadius: '4px',
+                    } : {
+                      background: 'linear-gradient(135deg, #10b981, #059669)',
+                      color: '#fff',
+                      boxShadow: '0 4px 14px rgba(16,185,129,0.3)',
+                      borderTopRightRadius: '4px',
+                    }}
+                  >
                     {msg.content}
                   </div>
-                  <span className="text-xs text-gray-400 px-1">{formatTime(msg.timestamp)}</span>
+                  <span className="text-xs text-gray-600 px-1">{formatTime(msg.timestamp)}</span>
                 </div>
               </div>
             ))}
 
-            {/* Loading indicator */}
+            {/* Typing indicator */}
             {loading && (
               <div className="flex gap-3">
-                <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-                  <Bot size={16} className="text-green-600" />
+                <div className="flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center"
+                  style={{ background: 'linear-gradient(135deg, #10b981, #06b6d4)', boxShadow: '0 0 12px rgba(16,185,129,0.4)' }}>
+                  <Bot size={15} className="text-white" />
                 </div>
-                <div className="bg-gray-50 rounded-2xl rounded-tl-sm px-4 py-3">
-                  <div className="flex gap-1 items-center h-4">
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                <div className="px-4 py-3 rounded-2xl rounded-tl-sm"
+                  style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                  <div className="flex gap-1.5 items-center h-5">
+                    {[0, 150, 300].map((delay) => (
+                      <div
+                        key={delay}
+                        className="w-2 h-2 rounded-full animate-bounce"
+                        style={{ background: '#10b981', animationDelay: `${delay}ms`, opacity: 0.8 }}
+                      />
+                    ))}
                   </div>
                 </div>
               </div>
             )}
-
             <div ref={messagesEndRef} />
           </div>
 
           {/* Suggested prompts */}
           {messages.length <= 1 && (
-            <div className="px-4 pb-3">
-              <p className="text-xs text-gray-400 mb-2 flex items-center gap-1.5">
-                <Sparkles size={12} /> Suggested questions
+            <div className="px-5 pb-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+              <p className="text-xs text-gray-500 mb-3 pt-3 flex items-center gap-1.5 font-semibold uppercase tracking-wider">
+                <Sparkles size={11} className="text-brand-400" /> Suggested questions
               </p>
               <div className="flex flex-wrap gap-2">
                 {SUGGESTED_PROMPTS.map((prompt) => (
                   <button
-                    key={prompt}
-                    onClick={() => sendMessage(prompt)}
-                    className="text-xs bg-green-50 text-green-700 hover:bg-green-100 px-3 py-1.5 rounded-full transition-colors border border-green-100"
+                    key={prompt.text}
+                    onClick={() => sendMessage(prompt.text)}
+                    className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full transition-all duration-200"
+                    style={{
+                      background: 'rgba(16,185,129,0.08)',
+                      border: '1px solid rgba(16,185,129,0.2)',
+                      color: '#6ee7b7',
+                    }}
+                    onMouseEnter={e => {
+                      e.currentTarget.style.background = 'rgba(16,185,129,0.15)'
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(16,185,129,0.2)'
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.background = 'rgba(16,185,129,0.08)'
+                      e.currentTarget.style.boxShadow = 'none'
+                    }}
                   >
-                    {prompt}
+                    {prompt.icon}
+                    {prompt.text}
                   </button>
                 ))}
               </div>
             </div>
           )}
 
-          {/* Input area */}
-          <div className="p-4 border-t border-gray-100">
-            <div className="flex gap-2 items-end">
-              <textarea
-                ref={textareaRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Ask your AI nutritionist..."
-                rows={1}
-                className="flex-1 resize-none rounded-xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent max-h-32 overflow-y-auto"
-                style={{ minHeight: '44px' }}
-                disabled={loading}
-              />
-              <Button
+          {/* Input */}
+          <div className="p-4" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+            <div className="flex gap-3 items-end">
+              <div className="flex-1 relative">
+                <textarea
+                  ref={textareaRef}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Ask your AI nutritionist..."
+                  rows={1}
+                  disabled={loading}
+                  className="w-full resize-none text-sm text-white placeholder:text-gray-600 focus:outline-none"
+                  style={{
+                    background: 'rgba(255,255,255,0.04)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    borderRadius: '14px',
+                    padding: '12px 16px',
+                    minHeight: '48px',
+                    maxHeight: '120px',
+                    boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.3)',
+                  }}
+                />
+              </div>
+              <button
                 onClick={() => sendMessage(input)}
                 disabled={!input.trim() || loading}
-                className="flex-shrink-0 w-10 h-10 p-0 flex items-center justify-center"
+                className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
+                style={{
+                  background: 'linear-gradient(135deg, #10b981, #059669)',
+                  boxShadow: input.trim() ? '0 4px 14px rgba(16,185,129,0.4)' : 'none',
+                }}
               >
-                <Send size={16} />
-              </Button>
+                <Send size={16} className="text-white" />
+              </button>
             </div>
-            <p className="text-xs text-gray-400 mt-2 text-center">
+            <p className="text-xs text-gray-700 mt-2 text-center">
               Press Enter to send · Shift+Enter for new line
             </p>
           </div>
-        </Card>
+        </div>
       </div>
     </DashboardLayout>
   )

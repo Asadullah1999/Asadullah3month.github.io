@@ -11,18 +11,18 @@ export default function App({ Component, pageProps }: AppProps) {
         toastOptions={{
           duration: 4000,
           style: {
-            background: '#fff',
-            color: '#111827',
+            background: '#111111',
+            color: '#f0f0f0',
             borderRadius: '12px',
-            border: '1px solid #f3f4f6',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+            border: '1px solid #1e1e1e',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
             fontSize: '14px',
           },
           success: {
-            iconTheme: { primary: '#22c55e', secondary: '#fff' },
+            iconTheme: { primary: '#06b6d4', secondary: '#0a0a0a' },
           },
           error: {
-            iconTheme: { primary: '#ef4444', secondary: '#fff' },
+            iconTheme: { primary: '#ef4444', secondary: '#0a0a0a' },
           },
         }}
       />

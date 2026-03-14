@@ -70,7 +70,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           verified_at: new Date().toISOString(),
         }).eq('user_id', pending.user_id)
 
-        await sendWhatsAppMessage(phone, '✅ Your WhatsApp is now connected to NutriCoach! You will receive daily meal reminders.')
+        await sendWhatsAppMessage(phone, '✅ Your WhatsApp is now connected to FahmiFit! You will receive daily meal reminders.')
       }
       return res.status(200).json({ status: 'ok' })
     }
@@ -82,7 +82,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (lowerText === 'help' || lowerText === '?') {
       await sendWhatsAppMessage(phone,
-        '🌿 *NutriCoach Commands*\n\n' +
+        '🌿 *FahmiFit Commands*\n\n' +
         '• *water <ml>* — Log water (e.g. water 500)\n' +
         '• *status* — Today\'s calorie progress\n' +
         '• *stop* — Pause reminders\n' +

@@ -44,7 +44,6 @@ export default function ProgressPage() {
     const weekStart = addWeeks(startOfWeek(new Date(), { weekStartsOn: 1 }), weekOffset)
     const days: WeekDay[] = []
     for (let i = 0; i < 7; i++) {
-      const d = addWeeks(weekStart, 0)
       const day = new Date(weekStart)
       day.setDate(day.getDate() + i)
       const iso = day.toISOString().split('T')[0]
@@ -102,15 +101,21 @@ export default function ProgressPage() {
     weekOffset === -1 ? 'Last week' :
     `Week of ${weekData[0]?.iso ? format(new Date(weekData[0].iso), 'MMM d') : ''}`
 
+  const navBtnStyle = {
+    background: 'rgba(255,255,255,0.04)',
+    border: '1px solid rgba(255,255,255,0.08)',
+    color: '#9ca3af',
+  }
+
   return (
     <DashboardLayout pageTitle="Progress" title="Weekly Progress">
       <div className="space-y-6">
         {/* Week selector */}
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-bold text-gray-900">{weekLabel}</h2>
+            <h2 className="text-lg font-bold text-white">{weekLabel}</h2>
             {weekData[0] && weekData[6] && (
-              <p className="text-sm text-gray-400">
+              <p className="text-sm text-gray-500">
                 {format(new Date(weekData[0].iso), 'MMM d')} – {format(new Date(weekData[6].iso), 'MMM d, yyyy')}
               </p>
             )}
@@ -118,21 +123,24 @@ export default function ProgressPage() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setWeekOffset(w => w - 1)}
-              className="p-2 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
+              className="p-2 rounded-xl transition-colors hover:text-white"
+              style={navBtnStyle}
             >
               <ChevronLeft size={16} />
             </button>
             <button
               onClick={() => setWeekOffset(0)}
               disabled={weekOffset === 0}
-              className="px-4 py-2 text-sm rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 transition-colors"
+              className="px-4 py-2 text-sm rounded-xl transition-colors hover:text-white disabled:opacity-40"
+              style={navBtnStyle}
             >
               Today
             </button>
             <button
               onClick={() => setWeekOffset(w => Math.min(w + 1, 0))}
               disabled={weekOffset >= 0}
-              className="p-2 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 transition-colors"
+              className="p-2 rounded-xl transition-colors hover:text-white disabled:opacity-40"
+              style={navBtnStyle}
             >
               <ChevronRight size={16} />
             </button>
@@ -176,8 +184,8 @@ export default function ProgressPage() {
         </div>
 
         {/* Weekly adherence grid */}
-        <Card padding="md">
-          <CardTitle className="mb-4">Daily Adherence</CardTitle>
+        <div className="rounded-2xl p-6" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
+          <p className="text-sm font-bold text-white mb-4 uppercase tracking-wider">Daily Adherence</p>
           <div className="grid grid-cols-7 gap-2">
             {weekData.map(day => {
               const pct = target > 0 ? (day.calories / target) * 100 : 0
@@ -185,46 +193,54 @@ export default function ProgressPage() {
               const isOver  = pct > 115
               const isFuture = new Date(day.iso) > new Date()
 
+              let bg = 'rgba(255,255,255,0.04)'
+              let textColor = '#4b5563'
+              let borderColor = 'rgba(255,255,255,0.06)'
+
+              if (!isFuture && day.logged) {
+                if (isGood) { bg = 'rgba(16,185,129,0.15)'; textColor = '#34d399'; borderColor = 'rgba(16,185,129,0.3)' }
+                else if (isOver) { bg = 'rgba(239,68,68,0.12)'; textColor = '#f87171'; borderColor = 'rgba(239,68,68,0.25)' }
+                else { bg = 'rgba(245,158,11,0.12)'; textColor = '#fbbf24'; borderColor = 'rgba(245,158,11,0.25)' }
+              }
+
               return (
                 <div key={day.iso} className="text-center">
-                  <p className="text-xs font-medium text-gray-500 mb-2">{day.date}</p>
-                  <div className={`h-16 rounded-xl flex items-end justify-center pb-1.5 text-xs font-bold transition-all ${
-                    isFuture ? 'bg-gray-50 border border-dashed border-gray-200 text-gray-300' :
-                    !day.logged ? 'bg-gray-100 text-gray-300' :
-                    isGood  ? 'bg-green-100 text-green-700' :
-                    isOver  ? 'bg-red-100 text-red-600' :
-                    'bg-yellow-100 text-yellow-700'
-                  }`}
-                    style={{
-                      background: isFuture ? undefined : day.logged
-                        ? `linear-gradient(to top, ${
-                            isGood ? '#bbf7d0' : isOver ? '#fecaca' : '#fef3c7'
-                          } ${Math.min(pct, 100)}%, #f9fafb ${Math.min(pct, 100)}%)`
-                        : undefined,
-                    }}
+                  <p className="text-xs font-semibold text-gray-600 mb-2">{day.date}</p>
+                  <div
+                    className="h-16 rounded-xl flex items-end justify-center pb-1.5 text-xs font-bold transition-all"
+                    style={{ background: bg, border: `1px solid ${borderColor}`, color: textColor }}
                   >
                     {day.logged && !isFuture ? `${Math.round(pct)}%` : ''}
                   </div>
                   {day.logged && !isFuture && (
-                    <p className="text-xs text-gray-400 mt-1">{day.calories}</p>
+                    <p className="text-xs text-gray-600 mt-1">{day.calories}</p>
                   )}
                 </div>
               )
             })}
           </div>
-          <div className="flex items-center gap-4 mt-4 text-xs text-gray-500">
-            <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded bg-green-200" /> On target (±15%)</div>
-            <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded bg-yellow-200" /> Under target</div>
-            <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded bg-red-200" /> Over target</div>
+          <div className="flex items-center gap-4 mt-4 text-xs text-gray-600">
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded" style={{ background: 'rgba(16,185,129,0.25)' }} />
+              On target (±15%)
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded" style={{ background: 'rgba(245,158,11,0.25)' }} />
+              Under target
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded" style={{ background: 'rgba(239,68,68,0.2)' }} />
+              Over target
+            </div>
           </div>
-        </Card>
+        </div>
 
         {/* Calorie bar chart */}
-        <Card padding="md">
-          <CardHeader>
-            <CardTitle>Calories This Week</CardTitle>
+        <div className="rounded-2xl p-6" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-sm font-bold text-white uppercase tracking-wider">Calories This Week</p>
             <Badge variant="green">{daysLogged} days logged</Badge>
-          </CardHeader>
+          </div>
           {weekData.length > 0 ? (
             <WeeklyCalorieChart
               data={weekData.map(d => ({
@@ -234,22 +250,22 @@ export default function ProgressPage() {
               }))}
             />
           ) : (
-            <div className="h-48 flex items-center justify-center text-gray-400">
+            <div className="h-48 flex items-center justify-center text-gray-600">
               <p className="text-sm">No data for this week</p>
             </div>
           )}
-        </Card>
+        </div>
 
         {/* Macro line chart */}
-        <Card padding="md">
-          <CardHeader>
-            <CardTitle>Macro Trends</CardTitle>
-            <div className="flex items-center gap-3 text-xs">
-              <span className="flex items-center gap-1"><span className="w-3 h-0.5 bg-blue-400 inline-block" />Protein</span>
-              <span className="flex items-center gap-1"><span className="w-3 h-0.5 bg-orange-400 inline-block" />Carbs</span>
-              <span className="flex items-center gap-1"><span className="w-3 h-0.5 bg-yellow-400 inline-block" />Fat</span>
+        <div className="rounded-2xl p-6" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-sm font-bold text-white uppercase tracking-wider">Macro Trends</p>
+            <div className="flex items-center gap-3 text-xs text-gray-500">
+              <span className="flex items-center gap-1"><span className="w-3 h-0.5 bg-blue-400 inline-block rounded" />Protein</span>
+              <span className="flex items-center gap-1"><span className="w-3 h-0.5 bg-orange-400 inline-block rounded" />Carbs</span>
+              <span className="flex items-center gap-1"><span className="w-3 h-0.5 bg-yellow-400 inline-block rounded" />Fat</span>
             </div>
-          </CardHeader>
+          </div>
           {weekData.some(d => d.logged) ? (
             <MacroLineChart
               data={weekData.map(d => ({
@@ -260,65 +276,69 @@ export default function ProgressPage() {
               }))}
             />
           ) : (
-            <div className="h-40 flex items-center justify-center text-gray-400">
+            <div className="h-40 flex items-center justify-center text-gray-600">
               <p className="text-sm">No data for this week</p>
             </div>
           )}
-        </Card>
+        </div>
 
         {/* Water chart */}
-        <Card padding="md">
-          <CardHeader>
-            <CardTitle>Water Intake</CardTitle>
-            <span className="text-xs text-gray-400">Target: 2,500ml</span>
-          </CardHeader>
+        <div className="rounded-2xl p-6" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-sm font-bold text-white uppercase tracking-wider">Water Intake</p>
+            <span className="text-xs text-gray-500">Target: 2,500ml</span>
+          </div>
           {weekData.some(d => d.logged) ? (
             <WaterChart data={weekData.map(d => ({ date: d.date, water: d.water }))} />
           ) : (
-            <div className="h-32 flex items-center justify-center text-gray-400">
+            <div className="h-32 flex items-center justify-center text-gray-600">
               <p className="text-sm">No data for this week</p>
             </div>
           )}
-        </Card>
+        </div>
 
         {/* Day-by-day table */}
-        <Card padding="md">
-          <CardTitle className="mb-4">Detailed Log</CardTitle>
+        <div className="rounded-2xl p-6" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
+          <p className="text-sm font-bold text-white mb-4 uppercase tracking-wider">Detailed Log</p>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-100">
-                  <th className="text-left text-xs font-medium text-gray-400 pb-3">Day</th>
-                  <th className="text-right text-xs font-medium text-gray-400 pb-3">Calories</th>
-                  <th className="text-right text-xs font-medium text-gray-400 pb-3">Protein</th>
-                  <th className="text-right text-xs font-medium text-gray-400 pb-3 hidden sm:table-cell">Carbs</th>
-                  <th className="text-right text-xs font-medium text-gray-400 pb-3 hidden sm:table-cell">Fat</th>
-                  <th className="text-right text-xs font-medium text-gray-400 pb-3">Water</th>
-                  <th className="text-right text-xs font-medium text-gray-400 pb-3">Status</th>
+                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                  <th className="text-left text-xs font-semibold text-gray-600 pb-3 uppercase tracking-wider">Day</th>
+                  <th className="text-right text-xs font-semibold text-gray-600 pb-3 uppercase tracking-wider">Calories</th>
+                  <th className="text-right text-xs font-semibold text-gray-600 pb-3 uppercase tracking-wider">Protein</th>
+                  <th className="text-right text-xs font-semibold text-gray-600 pb-3 uppercase tracking-wider hidden sm:table-cell">Carbs</th>
+                  <th className="text-right text-xs font-semibold text-gray-600 pb-3 uppercase tracking-wider hidden sm:table-cell">Fat</th>
+                  <th className="text-right text-xs font-semibold text-gray-600 pb-3 uppercase tracking-wider">Water</th>
+                  <th className="text-right text-xs font-semibold text-gray-600 pb-3 uppercase tracking-wider">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
-                {weekData.map(day => {
+              <tbody>
+                {weekData.map((day, i) => {
                   const isFuture = new Date(day.iso) > new Date()
                   const pct = target > 0 ? (day.calories / target) * 100 : 0
                   const status = !day.logged ? 'missed' : pct >= 85 && pct <= 115 ? 'on-target' : pct > 115 ? 'over' : 'under'
 
                   return (
-                    <tr key={day.iso} className="hover:bg-gray-50 transition-colors">
-                      <td className="py-3 font-medium text-gray-700">
+                    <tr
+                      key={day.iso}
+                      className="transition-colors"
+                      style={{ borderBottom: i < weekData.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}
+                    >
+                      <td className="py-3 font-semibold text-white">
                         {day.date}
-                        <span className="text-xs text-gray-400 ml-2">{format(new Date(day.iso), 'MMM d')}</span>
+                        <span className="text-xs text-gray-600 ml-2">{format(new Date(day.iso), 'MMM d')}</span>
                       </td>
-                      <td className="py-3 text-right font-semibold text-gray-900">
-                        {day.logged ? day.calories : '—'}
+                      <td className="py-3 text-right font-bold text-white">
+                        {day.logged ? day.calories : <span className="text-gray-700">—</span>}
                       </td>
-                      <td className="py-3 text-right text-gray-600">{day.logged ? `${day.protein}g` : '—'}</td>
-                      <td className="py-3 text-right text-gray-600 hidden sm:table-cell">{day.logged ? `${day.carbs}g` : '—'}</td>
-                      <td className="py-3 text-right text-gray-600 hidden sm:table-cell">{day.logged ? `${day.fat}g` : '—'}</td>
-                      <td className="py-3 text-right text-gray-600">{day.logged ? `${Math.round(day.water / 100) / 10}L` : '—'}</td>
+                      <td className="py-3 text-right text-gray-400">{day.logged ? `${day.protein}g` : <span className="text-gray-700">—</span>}</td>
+                      <td className="py-3 text-right text-gray-400 hidden sm:table-cell">{day.logged ? `${day.carbs}g` : <span className="text-gray-700">—</span>}</td>
+                      <td className="py-3 text-right text-gray-400 hidden sm:table-cell">{day.logged ? `${day.fat}g` : <span className="text-gray-700">—</span>}</td>
+                      <td className="py-3 text-right text-gray-400">{day.logged ? `${Math.round(day.water / 100) / 10}L` : <span className="text-gray-700">—</span>}</td>
                       <td className="py-3 text-right">
                         {isFuture ? (
-                          <span className="text-xs text-gray-300">Upcoming</span>
+                          <span className="text-xs text-gray-700">Upcoming</span>
                         ) : (
                           <Badge variant={
                             status === 'on-target' ? 'green' :
@@ -339,7 +359,7 @@ export default function ProgressPage() {
               </tbody>
             </table>
           </div>
-        </Card>
+        </div>
       </div>
     </DashboardLayout>
   )

@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import DashboardLayout from '@/components/layout/DashboardLayout'
-import Card, { CardHeader, CardTitle } from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import Input, { Select } from '@/components/ui/Input'
 import Badge from '@/components/ui/Badge'
@@ -31,6 +30,13 @@ const DEFAULT_REMINDERS = [
   { type: 'water', title: 'Water reminder',        message: 'Stay hydrated! Drink a glass 💧',    time: '10:00', days: DAYS, channel: 'whatsapp' },
   { type: 'meal',  title: 'Dinner reminder',       message: 'Don\'t forget to log dinner 🌙',      time: '19:00', days: DAYS, channel: 'whatsapp' },
 ]
+
+const TYPE_STYLES: Record<string, { bg: string; border: string; color: string }> = {
+  meal:     { bg: 'rgba(16,185,129,0.12)',  border: 'rgba(16,185,129,0.25)',  color: '#34d399' },
+  water:    { bg: 'rgba(6,182,212,0.12)',   border: 'rgba(6,182,212,0.25)',   color: '#22d3ee' },
+  weigh_in: { bg: 'rgba(139,92,246,0.12)', border: 'rgba(139,92,246,0.25)', color: '#a78bfa' },
+  custom:   { bg: 'rgba(245,158,11,0.12)',  border: 'rgba(245,158,11,0.25)',  color: '#fbbf24' },
+}
 
 export default function RemindersPage() {
   const [reminders, setReminders] = useState<Reminder[]>([])
@@ -137,9 +143,16 @@ export default function RemindersPage() {
     meal: 'green', water: 'blue', weigh_in: 'purple', custom: 'orange',
   }
 
+  const cardStyle = {
+    background: 'rgba(255,255,255,0.03)',
+    border: '1px solid rgba(255,255,255,0.08)',
+    borderRadius: '16px',
+    padding: '20px',
+  }
+
   return (
     <DashboardLayout pageTitle="Reminders" title="Reminders">
-      <div className="max-w-2xl mx-auto space-y-6">
+      <div className="max-w-2xl mx-auto space-y-5">
 
         {/* Header actions */}
         <div className="flex items-center justify-between flex-wrap gap-3">
@@ -158,8 +171,8 @@ export default function RemindersPage() {
 
         {/* Form */}
         {showForm && (
-          <Card padding="md">
-            <CardTitle className="mb-4">{editing ? 'Edit reminder' : 'New reminder'}</CardTitle>
+          <div style={cardStyle}>
+            <p className="font-bold text-white mb-5">{editing ? 'Edit reminder' : 'New reminder'}</p>
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <Select
@@ -189,18 +202,23 @@ export default function RemindersPage() {
               />
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Repeat days</label>
+                <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Repeat days</label>
                 <div className="flex gap-2">
                   {DAYS.map(day => (
                     <button
                       key={day}
                       type="button"
                       onClick={() => toggleDay(day)}
-                      className={`w-9 h-9 rounded-full text-xs font-semibold transition-all ${
-                        form.days.includes(day)
-                          ? 'bg-green-600 text-white'
-                          : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                      }`}
+                      className="w-9 h-9 rounded-full text-xs font-bold transition-all duration-200"
+                      style={form.days.includes(day) ? {
+                        background: 'linear-gradient(135deg, #10b981, #059669)',
+                        color: '#fff',
+                        boxShadow: '0 4px 12px rgba(16,185,129,0.35)',
+                      } : {
+                        background: 'rgba(255,255,255,0.05)',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        color: '#6b7280',
+                      }}
                     >
                       {DAY_LABELS[day as keyof typeof DAY_LABELS]}
                     </button>
@@ -222,48 +240,55 @@ export default function RemindersPage() {
                 <Button variant="secondary" onClick={resetForm}>Cancel</Button>
               </div>
             </div>
-          </Card>
+          </div>
         )}
 
         {/* Reminder list */}
         {reminders.length === 0 && !showForm ? (
-          <Card padding="lg" className="text-center">
-            <Bell size={40} className="mx-auto text-gray-200 mb-3" />
-            <p className="font-medium text-gray-700 mb-1">No reminders yet</p>
-            <p className="text-sm text-gray-400 mb-4">Add reminders to stay consistent with your nutrition goals.</p>
+          <div className="text-center py-16" style={cardStyle}>
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4"
+              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <Bell size={24} className="text-gray-600" />
+            </div>
+            <p className="font-bold text-white mb-1">No reminders yet</p>
+            <p className="text-sm text-gray-500 mb-5">Add reminders to stay consistent with your nutrition goals.</p>
             <div className="flex justify-center gap-3">
               <Button size="sm" onClick={addDefaults}>Add default reminders</Button>
               <Button variant="secondary" size="sm" onClick={() => setShowForm(true)}>
                 <Plus size={14} /> Custom
               </Button>
             </div>
-          </Card>
+          </div>
         ) : (
           <div className="space-y-3">
-            {reminders.map(reminder => (
-              <Card key={reminder.id} padding="md" className={!reminder.is_active ? 'opacity-60' : ''}>
-                <div className="flex items-start gap-4">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                    reminder.type === 'meal' ? 'bg-green-100' :
-                    reminder.type === 'water' ? 'bg-blue-100' :
-                    'bg-purple-100'
-                  }`}>
-                    <Bell size={16} className={
-                      reminder.type === 'meal' ? 'text-green-600' :
-                      reminder.type === 'water' ? 'text-blue-600' :
-                      'text-purple-600'
-                    } />
+            {reminders.map(reminder => {
+              const ts = TYPE_STYLES[reminder.type] || TYPE_STYLES.custom
+              return (
+                <div
+                  key={reminder.id}
+                  className="flex items-start gap-4 p-5 rounded-2xl transition-all duration-200"
+                  style={{
+                    background: 'rgba(255,255,255,0.03)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    opacity: reminder.is_active ? 1 : 0.5,
+                  }}
+                >
+                  <div
+                    className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
+                    style={{ background: ts.bg, border: `1px solid ${ts.border}` }}
+                  >
+                    <Bell size={16} style={{ color: ts.color }} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <span className="font-medium text-gray-900 text-sm">{reminder.title}</span>
+                      <span className="font-bold text-white text-sm">{reminder.title}</span>
                       <Badge variant={typeColors[reminder.type] || 'gray'}>
                         {reminder.type.replace('_', ' ')}
                       </Badge>
                       {!reminder.is_active && <Badge variant="gray">Paused</Badge>}
                     </div>
-                    <div className="flex items-center gap-3 text-xs text-gray-400">
-                      <span className="font-medium text-gray-600">{reminder.time}</span>
+                    <div className="flex items-center gap-3 text-xs text-gray-500">
+                      <span className="font-bold text-gray-400">{reminder.time}</span>
                       <span>{reminder.days.join(', ')}</span>
                       <span className="flex items-center gap-1">
                         {reminder.channel === 'whatsapp' ? <MessageCircle size={11} /> : <Smartphone size={11} />}
@@ -271,34 +296,43 @@ export default function RemindersPage() {
                       </span>
                     </div>
                     {reminder.message && (
-                      <p className="text-xs text-gray-400 mt-1 truncate">{reminder.message}</p>
+                      <p className="text-xs text-gray-600 mt-1 truncate">{reminder.message}</p>
                     )}
                   </div>
                   <div className="flex items-center gap-1 flex-shrink-0">
                     <button
                       onClick={() => toggleActive(reminder.id, reminder.is_active)}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${
-                        reminder.is_active ? 'bg-green-50 text-green-700 hover:bg-green-100' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                      }`}
+                      className="px-2.5 py-1 rounded-lg text-xs font-bold transition-all duration-200"
+                      style={reminder.is_active ? {
+                        background: 'rgba(16,185,129,0.12)',
+                        border: '1px solid rgba(16,185,129,0.25)',
+                        color: '#34d399',
+                      } : {
+                        background: 'rgba(255,255,255,0.04)',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        color: '#6b7280',
+                      }}
                     >
                       {reminder.is_active ? 'On' : 'Off'}
                     </button>
                     <button
                       onClick={() => editReminder(reminder)}
-                      className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                      className="p-1.5 rounded-lg transition-colors text-gray-600 hover:text-gray-300"
+                      style={{ background: 'rgba(255,255,255,0.04)' }}
                     >
                       <Edit2 size={14} />
                     </button>
                     <button
                       onClick={() => deleteReminder(reminder.id)}
-                      className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                      className="p-1.5 rounded-lg transition-colors text-gray-600 hover:text-red-400"
+                      style={{ background: 'rgba(255,255,255,0.04)' }}
                     >
                       <Trash2 size={14} />
                     </button>
                   </div>
                 </div>
-              </Card>
-            ))}
+              )
+            })}
           </div>
         )}
       </div>
