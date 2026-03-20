@@ -215,6 +215,17 @@ create trigger subscriptions_updated_at before update on public.subscriptions
   for each row execute procedure public.set_updated_at();
 
 -- ─────────────────────────────────────────────
+-- HEALTH CONDITION COLUMNS (migration)
+-- ─────────────────────────────────────────────
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS health_conditions jsonb DEFAULT '[]';
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS allergies text[] DEFAULT '{}';
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS medications text[] DEFAULT '{}';
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS diabetes_type text DEFAULT 'none'
+  CHECK (diabetes_type IN ('none','type1','type2','prediabetic','gestational'));
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS bp_status text DEFAULT 'normal'
+  CHECK (bp_status IN ('normal','elevated','high_stage1','high_stage2','hypertensive_crisis'));
+
+-- ─────────────────────────────────────────────
 -- CHAT MESSAGES (AI Nutritionist conversations)
 -- ─────────────────────────────────────────────
 create table if not exists public.chat_messages (

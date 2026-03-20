@@ -25,6 +25,11 @@ export type User = {
   protein_target: number | null
   carb_target: number | null
   fat_target: number | null
+  diabetes_type: 'none' | 'type1' | 'type2' | 'prediabetic' | 'gestational' | null
+  bp_status: 'normal' | 'elevated' | 'high_stage1' | 'high_stage2' | 'hypertensive_crisis' | null
+  health_conditions: Json[] | null
+  allergies: string[] | null
+  medications: string[] | null
   onboarded: boolean
   role: 'user' | 'admin' | 'nutritionist'
   created_at: string

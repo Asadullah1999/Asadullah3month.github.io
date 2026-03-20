@@ -3,9 +3,9 @@ import DashboardLayout from '@/components/layout/DashboardLayout'
 import Button from '@/components/ui/Button'
 import Input, { Select } from '@/components/ui/Input'
 import { supabase } from '@/lib/supabase'
-import { calculateBMR, calculateTDEE, calculateCalorieTarget, calculateMacros, getBMICategory } from '@/lib/utils'
+import { calculateBMR, calculateTDEE, calculateCalorieTarget, calculateMacros, adjustForHealthConditions, getBMICategory } from '@/lib/utils'
 import { User } from '@/lib/database.types'
-import { Save, User as UserIcon, Ruler, Weight, Target, Activity, Salad, Flame, Zap } from 'lucide-react'
+import { Save, User as UserIcon, Ruler, Weight, Target, Activity, Salad, Flame, Zap, Heart, Plus, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 const SECTION_STYLE = {
@@ -21,8 +21,12 @@ export default function ProfilePage() {
     full_name: '', age: '', gender: 'male',
     height_cm: '', weight_kg: '',
     goal: 'lose_weight', activity_level: 'moderate', diet_preference: 'omnivore',
+    diabetes_type: 'none', bp_status: 'normal',
+    allergies: [] as string[], medications: '',
   })
   const [saving, setSaving] = useState(false)
+  const [customAllergy, setCustomAllergy] = useState('')
+  const ALLERGY_PRESETS = ['Gluten', 'Dairy', 'Nuts', 'Soy', 'Eggs', 'Shellfish', 'Lactose', 'Fish']
 
   useEffect(() => { loadUser() }, [])
 
@@ -41,6 +45,10 @@ export default function ProfilePage() {
         goal: data.goal || 'lose_weight',
         activity_level: data.activity_level || 'moderate',
         diet_preference: data.diet_preference || 'omnivore',
+        diabetes_type: (data as any).diabetes_type || 'none',
+        bp_status: (data as any).bp_status || 'normal',
+        allergies: (data as any).allergies || [],
+        medications: (data as any).medications?.join(', ') || '',
       })
     }
   }
@@ -60,6 +68,7 @@ export default function ProfilePage() {
     const tdee = calculateTDEE(bmr, form.activity_level as 'sedentary' | 'light' | 'moderate' | 'active' | 'very_active')
     const calories = calculateCalorieTarget(tdee, form.goal as 'lose_weight' | 'gain_muscle' | 'maintain' | 'improve_health')
     const macros = calculateMacros(calories, form.goal)
+    const adjusted = adjustForHealthConditions(calories, macros, form.diabetes_type, form.bp_status)
 
     const { error } = await supabase.from('users').update({
       full_name: form.full_name,
@@ -67,14 +76,18 @@ export default function ProfilePage() {
       gender: form.gender as 'male' | 'female' | 'other',
       height_cm: heightCm,
       weight_kg: weightKg,
-      goal: form.goal as 'lose_weight' | 'gain_muscle' | 'maintain' | 'improve_health',
-      activity_level: form.activity_level as 'sedentary' | 'light' | 'moderate' | 'active' | 'very_active',
-      diet_preference: form.diet_preference as 'omnivore' | 'vegetarian' | 'vegan' | 'keto' | 'paleo' | 'halal' | 'kosher',
-      calorie_target: calories,
-      protein_target: macros.protein,
-      carb_target: macros.carbs,
-      fat_target: macros.fat,
-    }).eq('id', session.user.id)
+      goal: form.goal as any,
+      activity_level: form.activity_level as any,
+      diet_preference: form.diet_preference as any,
+      calorie_target: adjusted.calories,
+      protein_target: adjusted.protein,
+      carb_target: adjusted.carbs,
+      fat_target: adjusted.fat,
+      diabetes_type: form.diabetes_type,
+      bp_status: form.bp_status,
+      allergies: form.allergies,
+      medications: form.medications ? form.medications.split(',').map(m => m.trim()).filter(Boolean) : [],
+    } as any).eq('id', session.user.id)
 
     if (error) toast.error(error.message)
     else { toast.success('Profile updated!'); loadUser() }
@@ -107,6 +120,7 @@ export default function ProfilePage() {
     { value: 'paleo',      label: 'Paleo' },
     { value: 'halal',      label: 'Halal' },
     { value: 'kosher',     label: 'Kosher' },
+    { value: 'south_indian', label: 'South Indian' },
   ]
 
   const MACRO_ITEMS = [
@@ -280,6 +294,105 @@ export default function ProfilePage() {
           <p className="text-xs text-gray-600 mt-2">
             This helps personalize your meal suggestions and nutrient recommendations.
           </p>
+        </div>
+
+        {/* Health Conditions */}
+        <div style={SECTION_STYLE}>
+          <div className="flex items-center gap-2 mb-5">
+            <div className="w-8 h-8 rounded-xl flex items-center justify-center"
+              style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.2)' }}>
+              <Heart size={15} className="text-red-400" />
+            </div>
+            <p className="font-bold text-white">Health Conditions</p>
+          </div>
+          <div className="space-y-4">
+            <Select
+              label="Diabetes Status"
+              value={form.diabetes_type}
+              onChange={e => update('diabetes_type', e.target.value)}
+              options={[
+                { value: 'none', label: 'None' },
+                { value: 'type1', label: 'Type 1 Diabetes' },
+                { value: 'type2', label: 'Type 2 Diabetes' },
+                { value: 'prediabetic', label: 'Pre-diabetic' },
+                { value: 'gestational', label: 'Gestational Diabetes' },
+              ]}
+            />
+            <Select
+              label="Blood Pressure"
+              value={form.bp_status}
+              onChange={e => update('bp_status', e.target.value)}
+              options={[
+                { value: 'normal', label: 'Normal' },
+                { value: 'elevated', label: 'Elevated' },
+                { value: 'high_stage1', label: 'High — Stage 1' },
+                { value: 'high_stage2', label: 'High — Stage 2' },
+                { value: 'hypertensive_crisis', label: 'Hypertensive Crisis' },
+              ]}
+            />
+            <div>
+              <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Food Allergies</label>
+              <div className="flex flex-wrap gap-2 mb-2">
+                {ALLERGY_PRESETS.map(a => (
+                  <button key={a} type="button"
+                    onClick={() => setForm(prev => ({
+                      ...prev,
+                      allergies: prev.allergies.includes(a) ? prev.allergies.filter(x => x !== a) : [...prev.allergies, a],
+                    }))}
+                    className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200"
+                    style={form.allergies.includes(a) ? {
+                      background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.4)', color: '#34d399',
+                    } : {
+                      background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#9ca3af',
+                    }}>
+                    {form.allergies.includes(a) && '✓ '}{a}
+                  </button>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <input type="text" value={customAllergy} onChange={e => setCustomAllergy(e.target.value)}
+                  placeholder="Add custom allergy..."
+                  className="flex-1 px-3 py-2 rounded-lg text-sm text-white placeholder:text-gray-600 focus:outline-none"
+                  style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)' }}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' && customAllergy.trim()) {
+                      e.preventDefault()
+                      if (!form.allergies.includes(customAllergy.trim())) {
+                        setForm(prev => ({ ...prev, allergies: [...prev.allergies, customAllergy.trim()] }))
+                      }
+                      setCustomAllergy('')
+                    }
+                  }} />
+                <button type="button" onClick={() => {
+                  if (customAllergy.trim() && !form.allergies.includes(customAllergy.trim())) {
+                    setForm(prev => ({ ...prev, allergies: [...prev.allergies, customAllergy.trim()] }))
+                    setCustomAllergy('')
+                  }
+                }} className="px-3 py-2 rounded-lg" style={{ background: 'rgba(16,185,129,0.15)', color: '#34d399', border: '1px solid rgba(16,185,129,0.3)' }}>
+                  <Plus size={16} />
+                </button>
+              </div>
+              {form.allergies.filter(a => !ALLERGY_PRESETS.includes(a)).length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {form.allergies.filter(a => !ALLERGY_PRESETS.includes(a)).map(a => (
+                    <span key={a} className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold"
+                      style={{ background: 'rgba(16,185,129,0.12)', color: '#34d399', border: '1px solid rgba(16,185,129,0.3)' }}>
+                      {a}
+                      <button type="button" onClick={() => setForm(prev => ({ ...prev, allergies: prev.allergies.filter(x => x !== a) }))}>
+                        <X size={12} />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+            <Input
+              label="Medications (comma-separated)"
+              value={form.medications}
+              onChange={e => update('medications', e.target.value)}
+              placeholder="e.g., Metformin, Lisinopril"
+            />
+          </div>
         </div>
 
         <Button onClick={saveProfile} loading={saving} size="lg" fullWidth>
