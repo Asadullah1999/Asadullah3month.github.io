@@ -1,16 +1,13 @@
+import { createPagesBrowserClient } from '@supabase/auth-helpers-nextjs'
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
-
-if (!supabaseUrl || !supabaseAnonKey) {
+if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
   console.error('[FahmiFit] Missing Supabase environment variables. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your Vercel project settings.')
 }
 
-// Use untyped client to avoid Database generic inference issues
-// Our manual types in database.types.ts are used for component state instead
+// Cookie-based browser client — session is stored in cookies so middleware can read it
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const supabase: SupabaseClient<any> = createClient(supabaseUrl, supabaseAnonKey)
+export const supabase: SupabaseClient<any> = createPagesBrowserClient()
 
 // Server-side client with service role (API routes only)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
