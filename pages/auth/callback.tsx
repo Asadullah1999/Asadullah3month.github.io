@@ -11,38 +11,43 @@ export default function AuthCallbackPage() {
   useEffect(() => {
     async function handleCallback() {
       try {
-        // Exchange the auth code for a session (handles OAuth & email confirmation)
-        const { data: { session }, error: authError } = await supabase.auth.getSession()
+        let session = null
 
-        if (authError) {
-          setError(authError.message)
-          toast.error(authError.message)
-          setTimeout(() => router.push('/auth/login'), 3000)
-          return
-        }
+        // Check for PKCE auth code in query params (Supabase v2 default flow)
+        const urlParams = new URLSearchParams(window.location.search)
+        const code = urlParams.get('code')
 
-        if (!session) {
-          // Try to get session from URL hash (Supabase PKCE flow)
-          const hashParams = new URLSearchParams(window.location.hash.substring(1))
-          const accessToken = hashParams.get('access_token')
-          if (!accessToken) {
-            setError('No session found. Please try signing in again.')
+        if (code) {
+          const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+          if (exchangeError) {
+            setError(exchangeError.message)
+            toast.error(exchangeError.message)
             setTimeout(() => router.push('/auth/login'), 3000)
             return
           }
+          session = data.session
+        } else {
+          // Fall back to implicit flow (hash tokens) or existing session
+          const { data: { session: existingSession }, error: authError } = await supabase.auth.getSession()
+          if (authError) {
+            setError(authError.message)
+            toast.error(authError.message)
+            setTimeout(() => router.push('/auth/login'), 3000)
+            return
+          }
+          session = existingSession
         }
 
-        // Session exists — check if user is onboarded
-        const currentSession = session || (await supabase.auth.getSession()).data.session
-        if (!currentSession) {
-          router.push('/auth/login')
+        if (!session) {
+          setError('No session found. Please try signing in again.')
+          setTimeout(() => router.push('/auth/login'), 3000)
           return
         }
 
         const { data: user } = await supabase
           .from('users')
           .select('onboarded')
-          .eq('id', currentSession.user.id)
+          .eq('id', session.user.id)
           .single() as { data: { onboarded: boolean } | null; error: unknown }
 
         if (user && !user.onboarded) {
