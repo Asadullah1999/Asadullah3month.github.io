@@ -1,13 +1,58 @@
-import { useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+import { motion, useInView } from 'framer-motion'
 import {
   BarChart2, MessageCircle, TrendingUp, Bell,
   Check, Zap, Users, Bot, ChevronRight, Sparkles,
   Shield, Clock, Star,
 } from 'lucide-react'
+
+function AnimatedCounter({ target, suffix = '' }: { target: string; suffix?: string }) {
+  const [count, setCount] = useState(0)
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true })
+  const numericPart = parseInt(target.replace(/[^0-9]/g, ''))
+
+  useEffect(() => {
+    if (!isInView || !numericPart) return
+    let start = 0
+    const increment = numericPart / 40
+    const timer = setInterval(() => {
+      start += increment
+      if (start >= numericPart) {
+        setCount(numericPart)
+        clearInterval(timer)
+      } else {
+        setCount(Math.floor(start))
+      }
+    }, 30)
+    return () => clearInterval(timer)
+  }, [isInView, numericPart])
+
+  const formatted = target.includes('K') ? `${Math.floor(count / 1000)}K+`
+    : target.includes('M') ? `${(count / 1000000).toFixed(1)}M+`
+    : target.includes('%') ? `${count}%`
+    : target.includes('★') ? `${(count / 10).toFixed(1)}★`
+    : `${count}${suffix}`
+
+  return <span ref={ref}>{isInView ? formatted : '0'}</span>
+}
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 30 },
+  visible: (i: number) => ({
+    opacity: 1, y: 0,
+    transition: { duration: 0.5, delay: i * 0.1, ease: [0.25, 0.4, 0.25, 1] },
+  }),
+}
+
+const staggerContainer = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.08 } },
+}
 
 const FEATURES = [
   {
@@ -153,9 +198,13 @@ export default function LandingPage() {
           <div className="orb orb-violet w-[500px] h-[500px] -top-20 -right-20 opacity-25 animate-aurora" style={{ animationDelay: '4s' }} />
           <div className="orb orb-cyan w-[400px] h-[400px] bottom-0 left-1/2 -translate-x-1/2 opacity-20" />
 
-          <div className="max-w-4xl mx-auto text-center relative z-10">
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={staggerContainer}
+            className="max-w-4xl mx-auto text-center relative z-10">
             {/* Badge */}
-            <div className="inline-flex items-center gap-2 mb-8 px-4 py-1.5 rounded-full text-sm font-semibold"
+            <motion.div variants={fadeUp} custom={0} className="inline-flex items-center gap-2 mb-8 px-4 py-1.5 rounded-full text-sm font-semibold"
               style={{
                 background: 'rgba(16,185,129,0.1)',
                 border: '1px solid rgba(16,185,129,0.25)',
@@ -163,25 +212,25 @@ export default function LandingPage() {
               }}>
               <Sparkles size={13} />
               WhatsApp + AI-powered nutrition coaching
-            </div>
+            </motion.div>
 
             {/* Headline */}
-            <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight leading-none mb-6"
+            <motion.h1 variants={fadeUp} custom={1} className="text-5xl md:text-7xl font-extrabold tracking-tight leading-none mb-6"
               style={{ color: '#f0f4f8' }}>
               Reach your{' '}
               <span className="gradient-text-green">nutrition goals</span>
               <br />
               <span style={{ color: '#94a3b8' }}>faster than ever</span>
-            </h1>
+            </motion.h1>
 
             {/* Subheadline */}
-            <p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
+            <motion.p variants={fadeUp} custom={2} className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
               Track meals, get WhatsApp reminders, and monitor your progress —
               all from one beautiful dashboard. Built for real people.
-            </p>
+            </motion.p>
 
             {/* CTAs */}
-            <div className="flex items-center justify-center gap-4 flex-wrap mb-6">
+            <motion.div variants={fadeUp} custom={3} className="flex items-center justify-center gap-4 flex-wrap mb-6">
               <Link href="/auth/signup" className="btn-gradient text-base px-8 py-3.5 rounded-xl font-bold">
                 Start for free <ChevronRight size={16} />
               </Link>
@@ -193,19 +242,21 @@ export default function LandingPage() {
                 }}>
                 Sign in
               </Link>
-            </div>
-            <p className="text-sm text-gray-600">No credit card required · Free plan available</p>
+            </motion.div>
+            <motion.p variants={fadeUp} custom={4} className="text-sm text-gray-600">No credit card required · Free plan available</motion.p>
 
             {/* Stats row */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-20">
+            <motion.div variants={fadeUp} custom={5} className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-20">
               {STATS.map(s => (
                 <div key={s.value} className="text-center">
-                  <div className="text-3xl font-extrabold gradient-text-green mb-1">{s.value}</div>
+                  <div className="text-3xl font-extrabold gradient-text-green mb-1">
+                    <AnimatedCounter target={s.value} />
+                  </div>
                   <div className="text-sm text-gray-500">{s.label}</div>
                 </div>
               ))}
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </section>
 
         {/* === FEATURES === */}
@@ -224,9 +275,14 @@ export default function LandingPage() {
               </p>
             </div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {FEATURES.map((f) => (
-                <div key={f.title} className="feature-card group">
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: '-50px' }}
+              variants={staggerContainer}
+              className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {FEATURES.map((f, i) => (
+                <motion.div key={f.title} variants={fadeUp} custom={i} className="feature-card group">
                   {/* Icon */}
                   <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${f.gradient} flex items-center justify-center mb-5 text-white shadow-lg transition-all duration-300 group-hover:scale-110`}
                     style={{ boxShadow: `0 8px 24px ${f.glow}` }}>
@@ -234,9 +290,9 @@ export default function LandingPage() {
                   </div>
                   <h3 className="font-bold text-white text-base mb-2">{f.title}</h3>
                   <p className="text-sm text-gray-500 leading-relaxed">{f.desc}</p>
-                </div>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           </div>
         </section>
 

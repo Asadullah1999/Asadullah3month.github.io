@@ -38,7 +38,7 @@ export default async function handler(
   if (userId) {
     const { data: user } = await (supabase as any)
       .from('users')
-      .select('full_name, age, gender, height_cm, weight_kg, goal, activity_level, diet_preference, calorie_target, protein_target, carb_target, fat_target')
+      .select('full_name, age, gender, height_cm, weight_kg, goal, activity_level, diet_preference, calorie_target, protein_target, carb_target, fat_target, diabetes_type, bp_status, allergies, medications')
       .eq('id', userId)
       .single()
 
@@ -65,6 +65,10 @@ Client Profile:
 - Activity Level: ${user.activity_level?.replace('_', ' ') || 'unknown'}
 - Diet Preference: ${user.diet_preference || 'omnivore'}${user.diet_preference === 'south_indian' ? ' (suggest idli, dosa, sambar, rasam, upma, pongal, rice dishes, dal, coconut-based foods)' : ''}
 - Daily Targets: ${user.calorie_target || 2000} kcal, ${user.protein_target || 150}g protein, ${user.carb_target || 200}g carbs, ${user.fat_target || 65}g fat
+- Diabetes: ${user.diabetes_type && user.diabetes_type !== 'none' ? user.diabetes_type.replace('_', ' ') : 'None'}
+- Blood Pressure: ${user.bp_status && user.bp_status !== 'normal' ? user.bp_status.replace(/_/g, ' ') : 'Normal'}
+- Allergies: ${user.allergies?.length ? user.allergies.join(', ') : 'None reported'}
+- Medications: ${user.medications?.length ? user.medications.join(', ') : 'None'}
 
 Recent 7-Day Log Summary:
 ${recentLogs && recentLogs.length > 0
@@ -86,7 +90,12 @@ Guidelines:
 - Keep responses concise (2-4 paragraphs max)
 - Use bullet points for lists
 - Always maintain a supportive, professional tone
-- For medical conditions, recommend consulting a healthcare professional`
+- CRITICAL: Generate SPECIFIC meal plans with exact portions adjusted for health conditions:
+  * For diabetics: ONLY recommend low glycemic index foods, controlled carbs. Give specific meals with gram amounts (e.g., "Ragi dosa 2 pcs (180 kcal) + sambar 1 cup (112 kcal) - Low GI breakfast")
+  * For high BP: low sodium meals with specific alternatives, DASH diet principles, potassium-rich foods
+  * For allergies: STRICTLY avoid all listed allergens, suggest safe alternatives
+  * Always include per-meal calorie and macro breakdowns when suggesting meals
+- Include a brief medical disclaimer when discussing health conditions`
 
   const groqMessages = [
     { role: 'system', content: systemPrompt },

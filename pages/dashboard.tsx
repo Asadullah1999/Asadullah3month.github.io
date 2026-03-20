@@ -32,6 +32,7 @@ export default function DashboardPage() {
   const [streak, setStreak] = useState(0)
   const [weeklyAvg, setWeeklyAvg] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [weekLogDates, setWeekLogDates] = useState<Set<string>>(new Set())
   const [dailyTip] = useState(() => DAILY_TIPS[Math.floor(Math.random() * DAILY_TIPS.length)])
 
   useEffect(() => { loadData() }, [])
@@ -49,8 +50,19 @@ export default function DashboardPage() {
     if (logData) setTodayLog(logData)
 
     if (userData) {
-      const { data: logs } = await supabase.from('daily_logs').select('log_date, total_calories').eq('user_id', session.user.id).order('log_date', { ascending: false }).limit(30)
+      const { data: logs } = await supabase.from('daily_logs').select('log_date, total_calories').eq('user_id', session.user.id).order('log_date', { ascending: false }).limit(30) as { data: Array<{ log_date: string; total_calories: number | null }> | null }
       if (logs) {
+        // Build set of dates with logged data for the current week
+        const weekDates = new Set<string>()
+        const now = new Date()
+        const dayOfWeek = now.getDay() === 0 ? 6 : now.getDay() - 1
+        for (let i = 0; i <= dayOfWeek; i++) {
+          const d = new Date(now); d.setDate(d.getDate() - (dayOfWeek - i))
+          const iso = d.toISOString().split('T')[0]
+          const found = logs.find(l => l.log_date === iso)
+          if (found && (found.total_calories || 0) > 0) weekDates.add(iso)
+        }
+        setWeekLogDates(weekDates)
         let s = 0
         const today = new Date()
         for (let i = 0; i < 30; i++) {
@@ -413,11 +425,16 @@ export default function DashboardPage() {
           </div>
           <div className="grid grid-cols-7 gap-2">
             {['M','T','W','T','F','S','S'].map((day, i) => {
-              const today = new Date().getDay()
+              const now = new Date()
+              const today = now.getDay()
               const adjustedToday = today === 0 ? 6 : today - 1
               const isToday = i === adjustedToday
               const isPast = i < adjustedToday
-              const filled = isPast ? Math.random() > 0.3 : false
+              // Calculate the date for this day of the week
+              const dayDate = new Date(now)
+              dayDate.setDate(dayDate.getDate() - (adjustedToday - i))
+              const dayISO = dayDate.toISOString().split('T')[0]
+              const filled = isPast ? weekLogDates.has(dayISO) : false
               return (
                 <div key={i} className="flex flex-col items-center gap-2">
                   <span className="text-xs font-semibold" style={{ color: isToday ? '#34d399' : '#4b5563' }}>{day}</span>

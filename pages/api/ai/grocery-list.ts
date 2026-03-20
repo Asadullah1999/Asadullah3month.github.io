@@ -44,7 +44,7 @@ No active diet plan. No recent food logs.`
   if (userId) {
     const { data: user } = await supabase
       .from('users')
-      .select('goal, diet_preference, calorie_target, protein_target, carb_target, fat_target')
+      .select('goal, diet_preference, calorie_target, protein_target, carb_target, fat_target, diabetes_type, bp_status, allergies, medications')
       .eq('id', userId)
       .single()
 
@@ -81,10 +81,19 @@ ${recentLogs && recentLogs.length > 0
   : 'No recent food logs.'}`
   }
 
+  // Build health context
+  const healthContext = userId && user ? `
+Health Information:
+- Diabetes: ${(user as any).diabetes_type && (user as any).diabetes_type !== 'none' ? (user as any).diabetes_type : 'None'}
+- Blood Pressure: ${(user as any).bp_status && (user as any).bp_status !== 'normal' ? (user as any).bp_status : 'Normal'}
+- Allergies: ${(user as any).allergies?.length ? (user as any).allergies.join(', ') : 'None'}
+- Medications: ${(user as any).medications?.length ? (user as any).medications.join(', ') : 'None'}` : ''
+
   const isSouthIndian = context.includes('south_indian')
   const prompt = `Based on this nutrition profile, generate a comprehensive weekly grocery shopping list.
 
 ${context}
+${healthContext}
 ${isSouthIndian ? `
 South Indian cuisine focus — prioritise these staples:
 - Grains: idli rice, parboiled rice, semolina (rava), poha
@@ -94,7 +103,12 @@ South Indian cuisine focus — prioritise these staples:
 - Fats: coconut oil, ghee
 - Beverages: filter coffee decoction, buttermilk` : ''}
 
-Create a practical, budget-friendly grocery list for one week that supports the user's goals and diet preference.
+IMPORTANT health-based adjustments:
+- For diabetics: prioritize low-GI foods (millets, whole grains, legumes), avoid sugary items, refined flour
+- For high BP: include potassium-rich foods (bananas, spinach, sweet potatoes), avoid high-sodium items, pickles, papad
+- For allergies: STRICTLY exclude any items containing listed allergens
+
+Create a practical, budget-friendly grocery list for one week that supports the user's goals, diet preference, and health conditions.
 
 Respond ONLY with valid JSON in this exact format:
 {

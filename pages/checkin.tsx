@@ -7,7 +7,7 @@ import { todayISO, formatDate } from '@/lib/utils'
 import { User, DailyLog, MealItem } from '@/lib/database.types'
 import {
   Plus, Trash2, Save, CheckCircle2, Smile, Meh, Frown, Zap,
-  Apple, Droplets, Flame, Target,
+  Apple, Droplets, Flame, Target, Search,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -27,24 +27,133 @@ const MOOD_OPTIONS = [
   { value: 'bad',   label: 'Bad',   icon: <Frown size={22} />, gradient: 'linear-gradient(135deg, #ef4444, #dc2626)', glow: 'rgba(239,68,68,0.4)' },
 ]
 
-const QUICK_FOODS: MealItem[] = [
-  { name: 'Boiled egg',        calories: 77,  protein: 6,  carbs: 1,  fat: 5,  quantity: '1 large' },
-  { name: 'Chicken breast',    calories: 165, protein: 31, carbs: 0,  fat: 4,  quantity: '100g' },
-  { name: 'White rice',        calories: 206, protein: 4,  carbs: 45, fat: 0,  quantity: '1 cup' },
-  { name: 'Whole wheat bread', calories: 69,  protein: 4,  carbs: 12, fat: 1,  quantity: '1 slice' },
-  { name: 'Banana',            calories: 105, protein: 1,  carbs: 27, fat: 0,  quantity: '1 medium' },
-  { name: 'Oats',              calories: 147, protein: 5,  carbs: 25, fat: 3,  quantity: '40g dry' },
-  { name: 'Greek yogurt',      calories: 100, protein: 17, carbs: 6,  fat: 0,  quantity: '170g' },
-  { name: 'Almonds',           calories: 164, protein: 6,  carbs: 6,  fat: 14, quantity: '28g' },
-  // South Indian foods
-  { name: 'Idli',              calories: 74,  protein: 3,  carbs: 15, fat: 0,  quantity: '2 pieces' },
-  { name: 'Plain Dosa',        calories: 168, protein: 4,  carbs: 32, fat: 3,  quantity: '1 medium' },
-  { name: 'Sambar',            calories: 112, protein: 6,  carbs: 18, fat: 2,  quantity: '1 cup' },
-  { name: 'Upma',              calories: 210, protein: 5,  carbs: 38, fat: 5,  quantity: '1 cup' },
-  { name: 'Vada',              calories: 97,  protein: 4,  carbs: 14, fat: 3,  quantity: '1 piece' },
-  { name: 'Pongal',            calories: 268, protein: 8,  carbs: 48, fat: 5,  quantity: '1 cup' },
-  { name: 'Rasam',             calories: 48,  protein: 2,  carbs: 8,  fat: 1,  quantity: '1 cup' },
-  { name: 'Coconut Chutney',   calories: 72,  protein: 1,  carbs: 3,  fat: 7,  quantity: '2 tbsp' },
+type FoodCategory = 'all' | 'basics' | 'north_indian' | 'south_indian' | 'bengali_eastern' | 'gujarati_maharashtrian' | 'street_food' | 'sweets' | 'beverages' | 'healthy'
+
+type CategorizedFood = MealItem & { category: FoodCategory }
+
+const FOOD_CATEGORIES: { key: FoodCategory; label: string }[] = [
+  { key: 'all',                     label: 'All' },
+  { key: 'basics',                  label: 'Basics' },
+  { key: 'north_indian',            label: 'North Indian' },
+  { key: 'south_indian',            label: 'South Indian' },
+  { key: 'bengali_eastern',         label: 'Bengali' },
+  { key: 'gujarati_maharashtrian',  label: 'Gujarati' },
+  { key: 'street_food',             label: 'Street Food' },
+  { key: 'sweets',                  label: 'Sweets' },
+  { key: 'beverages',               label: 'Drinks' },
+  { key: 'healthy',                 label: 'Healthy' },
+]
+
+const QUICK_FOODS: CategorizedFood[] = [
+  // Basics
+  { name: 'Boiled egg',        calories: 77,  protein: 6,  carbs: 1,  fat: 5,  quantity: '1 large', category: 'basics' },
+  { name: 'Chicken breast',    calories: 165, protein: 31, carbs: 0,  fat: 4,  quantity: '100g', category: 'basics' },
+  { name: 'White rice',        calories: 206, protein: 4,  carbs: 45, fat: 0,  quantity: '1 cup', category: 'basics' },
+  { name: 'Whole wheat bread', calories: 69,  protein: 4,  carbs: 12, fat: 1,  quantity: '1 slice', category: 'basics' },
+  { name: 'Banana',            calories: 105, protein: 1,  carbs: 27, fat: 0,  quantity: '1 medium', category: 'basics' },
+  { name: 'Oats',              calories: 147, protein: 5,  carbs: 25, fat: 3,  quantity: '40g dry', category: 'basics' },
+  { name: 'Greek yogurt',      calories: 100, protein: 17, carbs: 6,  fat: 0,  quantity: '170g', category: 'basics' },
+  { name: 'Almonds',           calories: 164, protein: 6,  carbs: 6,  fat: 14, quantity: '28g', category: 'basics' },
+  { name: 'Apple',             calories: 95,  protein: 0,  carbs: 25, fat: 0,  quantity: '1 medium', category: 'basics' },
+  { name: 'Paneer',            calories: 265, protein: 18, carbs: 1,  fat: 21, quantity: '100g', category: 'basics' },
+  { name: 'Curd / Dahi',       calories: 98,  protein: 11, carbs: 4,  fat: 5,  quantity: '1 cup', category: 'basics' },
+  { name: 'Ghee',              calories: 112, protein: 0,  carbs: 0,  fat: 12, quantity: '1 tbsp', category: 'basics' },
+
+  // North Indian
+  { name: 'Roti / Chapati',       calories: 104, protein: 3,  carbs: 18, fat: 3,  quantity: '1 piece', category: 'north_indian' },
+  { name: 'Naan',                  calories: 262, protein: 9,  carbs: 45, fat: 5,  quantity: '1 piece', category: 'north_indian' },
+  { name: 'Paratha (plain)',       calories: 180, protein: 4,  carbs: 28, fat: 7,  quantity: '1 piece', category: 'north_indian' },
+  { name: 'Aloo Paratha',         calories: 230, protein: 5,  carbs: 32, fat: 10, quantity: '1 piece', category: 'north_indian' },
+  { name: 'Dal Makhani',          calories: 230, protein: 12, carbs: 28, fat: 9,  quantity: '1 cup', category: 'north_indian' },
+  { name: 'Dal Tadka',            calories: 180, protein: 10, carbs: 24, fat: 5,  quantity: '1 cup', category: 'north_indian' },
+  { name: 'Rajma',                calories: 210, protein: 12, carbs: 30, fat: 5,  quantity: '1 cup', category: 'north_indian' },
+  { name: 'Chole / Chana Masala', calories: 240, protein: 11, carbs: 34, fat: 7,  quantity: '1 cup', category: 'north_indian' },
+  { name: 'Paneer Butter Masala', calories: 320, protein: 14, carbs: 12, fat: 25, quantity: '1 cup', category: 'north_indian' },
+  { name: 'Palak Paneer',         calories: 260, protein: 15, carbs: 10, fat: 18, quantity: '1 cup', category: 'north_indian' },
+  { name: 'Kadhai Paneer',        calories: 290, protein: 16, carbs: 8,  fat: 22, quantity: '1 cup', category: 'north_indian' },
+  { name: 'Aloo Gobi',            calories: 150, protein: 4,  carbs: 20, fat: 7,  quantity: '1 cup', category: 'north_indian' },
+  { name: 'Baingan Bharta',       calories: 140, protein: 3,  carbs: 14, fat: 9,  quantity: '1 cup', category: 'north_indian' },
+  { name: 'Jeera Rice',           calories: 220, protein: 4,  carbs: 42, fat: 5,  quantity: '1 cup', category: 'north_indian' },
+  { name: 'Pulao',                calories: 250, protein: 5,  carbs: 44, fat: 7,  quantity: '1 cup', category: 'north_indian' },
+  { name: 'Khichdi',              calories: 200, protein: 7,  carbs: 34, fat: 4,  quantity: '1 cup', category: 'north_indian' },
+  { name: 'Poha',                 calories: 180, protein: 4,  carbs: 35, fat: 4,  quantity: '1 cup', category: 'north_indian' },
+  { name: 'Raita',                calories: 70,  protein: 4,  carbs: 5,  fat: 4,  quantity: '1 cup', category: 'north_indian' },
+  { name: 'Biryani (chicken)',    calories: 350, protein: 18, carbs: 42, fat: 12, quantity: '1 plate', category: 'north_indian' },
+  { name: 'Biryani (veg)',        calories: 280, protein: 7,  carbs: 45, fat: 8,  quantity: '1 plate', category: 'north_indian' },
+
+  // South Indian
+  { name: 'Idli',              calories: 74,  protein: 3,  carbs: 15, fat: 0,  quantity: '2 pieces', category: 'south_indian' },
+  { name: 'Plain Dosa',        calories: 168, protein: 4,  carbs: 32, fat: 3,  quantity: '1 medium', category: 'south_indian' },
+  { name: 'Masala Dosa',       calories: 250, protein: 6,  carbs: 38, fat: 8,  quantity: '1 piece', category: 'south_indian' },
+  { name: 'Sambar',            calories: 112, protein: 6,  carbs: 18, fat: 2,  quantity: '1 cup', category: 'south_indian' },
+  { name: 'Upma',              calories: 210, protein: 5,  carbs: 38, fat: 5,  quantity: '1 cup', category: 'south_indian' },
+  { name: 'Vada',              calories: 97,  protein: 4,  carbs: 14, fat: 3,  quantity: '1 piece', category: 'south_indian' },
+  { name: 'Medu Vada',         calories: 135, protein: 6,  carbs: 16, fat: 5,  quantity: '1 piece', category: 'south_indian' },
+  { name: 'Pongal',            calories: 268, protein: 8,  carbs: 48, fat: 5,  quantity: '1 cup', category: 'south_indian' },
+  { name: 'Rasam',             calories: 48,  protein: 2,  carbs: 8,  fat: 1,  quantity: '1 cup', category: 'south_indian' },
+  { name: 'Coconut Chutney',   calories: 72,  protein: 1,  carbs: 3,  fat: 7,  quantity: '2 tbsp', category: 'south_indian' },
+  { name: 'Uttapam',           calories: 200, protein: 5,  carbs: 34, fat: 5,  quantity: '1 piece', category: 'south_indian' },
+  { name: 'Appam',             calories: 120, protein: 2,  carbs: 24, fat: 2,  quantity: '1 piece', category: 'south_indian' },
+  { name: 'Puttu',             calories: 190, protein: 4,  carbs: 38, fat: 3,  quantity: '1 serving', category: 'south_indian' },
+  { name: 'Lemon Rice',        calories: 235, protein: 4,  carbs: 40, fat: 7,  quantity: '1 cup', category: 'south_indian' },
+  { name: 'Curd Rice',         calories: 200, protein: 6,  carbs: 34, fat: 5,  quantity: '1 cup', category: 'south_indian' },
+  { name: 'Bisibele Bath',     calories: 280, protein: 9,  carbs: 44, fat: 8,  quantity: '1 cup', category: 'south_indian' },
+  { name: 'Kerala Fish Curry', calories: 220, protein: 22, carbs: 8,  fat: 12, quantity: '1 cup', category: 'south_indian' },
+
+  // Bengali / Eastern
+  { name: 'Litti Chokha',       calories: 300, protein: 8,  carbs: 42, fat: 12, quantity: '2 pieces', category: 'bengali_eastern' },
+  { name: 'Bengali Fish Curry', calories: 250, protein: 24, carbs: 10, fat: 14, quantity: '1 cup', category: 'bengali_eastern' },
+  { name: 'Mishti Doi',         calories: 150, protein: 5,  carbs: 22, fat: 5,  quantity: '1 cup', category: 'bengali_eastern' },
+  { name: 'Shukto',             calories: 130, protein: 3,  carbs: 16, fat: 7,  quantity: '1 cup', category: 'bengali_eastern' },
+  { name: 'Luchi',              calories: 120, protein: 2,  carbs: 16, fat: 6,  quantity: '1 piece', category: 'bengali_eastern' },
+
+  // Gujarati / Maharashtrian
+  { name: 'Dhokla',        calories: 130, protein: 5,  carbs: 20, fat: 3,  quantity: '3 pieces', category: 'gujarati_maharashtrian' },
+  { name: 'Thepla',        calories: 140, protein: 4,  carbs: 20, fat: 5,  quantity: '1 piece', category: 'gujarati_maharashtrian' },
+  { name: 'Pav Bhaji',     calories: 380, protein: 10, carbs: 52, fat: 15, quantity: '1 plate', category: 'gujarati_maharashtrian' },
+  { name: 'Vada Pav',      calories: 290, protein: 6,  carbs: 38, fat: 13, quantity: '1 piece', category: 'gujarati_maharashtrian' },
+  { name: 'Misal Pav',     calories: 350, protein: 12, carbs: 45, fat: 14, quantity: '1 plate', category: 'gujarati_maharashtrian' },
+  { name: 'Undhiyu',       calories: 220, protein: 6,  carbs: 28, fat: 10, quantity: '1 cup', category: 'gujarati_maharashtrian' },
+  { name: 'Khandvi',       calories: 110, protein: 5,  carbs: 14, fat: 4,  quantity: '4 pieces', category: 'gujarati_maharashtrian' },
+
+  // Street Food / Snacks
+  { name: 'Samosa',        calories: 260, protein: 5,  carbs: 28, fat: 15, quantity: '1 piece', category: 'street_food' },
+  { name: 'Pani Puri',     calories: 180, protein: 3,  carbs: 30, fat: 6,  quantity: '6 pieces', category: 'street_food' },
+  { name: 'Bhel Puri',     calories: 200, protein: 4,  carbs: 32, fat: 7,  quantity: '1 plate', category: 'street_food' },
+  { name: 'Aloo Tikki',    calories: 180, protein: 3,  carbs: 24, fat: 9,  quantity: '2 pieces', category: 'street_food' },
+  { name: 'Dahi Vada',     calories: 165, protein: 6,  carbs: 22, fat: 6,  quantity: '2 pieces', category: 'street_food' },
+  { name: 'Pakora',        calories: 190, protein: 4,  carbs: 18, fat: 12, quantity: '4 pieces', category: 'street_food' },
+  { name: 'Sev Puri',      calories: 220, protein: 4,  carbs: 28, fat: 10, quantity: '1 plate', category: 'street_food' },
+  { name: 'Kachori',       calories: 240, protein: 5,  carbs: 26, fat: 14, quantity: '1 piece', category: 'street_food' },
+
+  // Sweets (for tracking)
+  { name: 'Gulab Jamun',   calories: 175, protein: 2,  carbs: 28, fat: 7,  quantity: '2 pieces', category: 'sweets' },
+  { name: 'Jalebi',        calories: 150, protein: 1,  carbs: 30, fat: 4,  quantity: '2 pieces', category: 'sweets' },
+  { name: 'Ladoo (besan)', calories: 180, protein: 4,  carbs: 22, fat: 9,  quantity: '1 piece', category: 'sweets' },
+  { name: 'Kheer',         calories: 210, protein: 6,  carbs: 32, fat: 7,  quantity: '1 cup', category: 'sweets' },
+  { name: 'Halwa (suji)',  calories: 250, protein: 3,  carbs: 36, fat: 11, quantity: '1 cup', category: 'sweets' },
+  { name: 'Rasgulla',      calories: 125, protein: 3,  carbs: 25, fat: 1,  quantity: '2 pieces', category: 'sweets' },
+  { name: 'Barfi',         calories: 160, protein: 3,  carbs: 24, fat: 7,  quantity: '1 piece', category: 'sweets' },
+
+  // Beverages
+  { name: 'Masala Chai',     calories: 90,  protein: 3,  carbs: 12, fat: 3,  quantity: '1 cup', category: 'beverages' },
+  { name: 'Filter Coffee',   calories: 80,  protein: 2,  carbs: 10, fat: 3,  quantity: '1 cup', category: 'beverages' },
+  { name: 'Lassi (sweet)',    calories: 175, protein: 5,  carbs: 28, fat: 5,  quantity: '1 glass', category: 'beverages' },
+  { name: 'Chaas / Buttermilk', calories: 40, protein: 2, carbs: 5,  fat: 1,  quantity: '1 glass', category: 'beverages' },
+  { name: 'Nimbu Pani',      calories: 45,  protein: 0,  carbs: 12, fat: 0,  quantity: '1 glass', category: 'beverages' },
+  { name: 'Coconut Water',   calories: 46,  protein: 2,  carbs: 9,  fat: 0,  quantity: '1 cup', category: 'beverages' },
+  { name: 'Mango Lassi',     calories: 210, protein: 5,  carbs: 36, fat: 5,  quantity: '1 glass', category: 'beverages' },
+  { name: 'Thandai',         calories: 160, protein: 4,  carbs: 22, fat: 6,  quantity: '1 glass', category: 'beverages' },
+
+  // Healthy / Modern
+  { name: 'Sprouts Salad',     calories: 120, protein: 8,  carbs: 18, fat: 2,  quantity: '1 cup', category: 'healthy' },
+  { name: 'Moong Dal Chilla',  calories: 110, protein: 7,  carbs: 16, fat: 2,  quantity: '1 piece', category: 'healthy' },
+  { name: 'Ragi Dosa',         calories: 130, protein: 4,  carbs: 26, fat: 2,  quantity: '1 piece', category: 'healthy' },
+  { name: 'Millet Khichdi',    calories: 190, protein: 7,  carbs: 32, fat: 3,  quantity: '1 cup', category: 'healthy' },
+  { name: 'Oats Upma',         calories: 160, protein: 5,  carbs: 28, fat: 4,  quantity: '1 cup', category: 'healthy' },
+  { name: 'Quinoa Pulao',      calories: 180, protein: 6,  carbs: 30, fat: 4,  quantity: '1 cup', category: 'healthy' },
+  { name: 'Ragi Porridge',     calories: 120, protein: 3,  carbs: 24, fat: 2,  quantity: '1 cup', category: 'healthy' },
+  { name: 'Mixed Vegetable Soup', calories: 80, protein: 3, carbs: 14, fat: 1, quantity: '1 cup', category: 'healthy' },
 ]
 
 function blankItem(): MealItem {
@@ -59,6 +168,8 @@ export default function CheckinPage() {
   const [newItem, setNewItem] = useState<MealItem>(blankItem())
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [foodCategory, setFoodCategory] = useState<FoodCategory>('all')
+  const [foodSearch, setFoodSearch] = useState('')
 
   useEffect(() => { loadData() }, [])
 
@@ -300,13 +411,46 @@ export default function CheckinPage() {
               </div>
             )}
 
-            {/* Quick add */}
+            {/* Quick add with category filter */}
             <div className="pt-4 border-t border-white/[0.05]">
               <p className="text-xs font-bold text-gray-500 mb-3 flex items-center gap-1.5 uppercase tracking-wider">
-                <Zap size={11} className="text-amber-400" /> Quick add
+                <Zap size={11} className="text-amber-400" /> Quick add — {QUICK_FOODS.length} foods
               </p>
-              <div className="flex flex-wrap gap-2">
-                {QUICK_FOODS.map(food => (
+
+              {/* Search */}
+              <div className="relative mb-3">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600" />
+                <input
+                  type="text"
+                  value={foodSearch}
+                  onChange={e => setFoodSearch(e.target.value)}
+                  placeholder="Search foods..."
+                  className="w-full pl-9 pr-3 py-2 rounded-lg text-sm text-white placeholder:text-gray-600 focus:outline-none"
+                  style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
+                />
+              </div>
+
+              {/* Category tabs */}
+              <div className="flex gap-1.5 overflow-x-auto pb-2 mb-3">
+                {FOOD_CATEGORIES.map(cat => (
+                  <button key={cat.key} onClick={() => setFoodCategory(cat.key)}
+                    className="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all duration-200 flex-shrink-0"
+                    style={foodCategory === cat.key ? {
+                      background: activeMeal.color, border: `1px solid ${activeMeal.border}`, color: activeMeal.accent,
+                    } : {
+                      background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', color: '#6b7280',
+                    }}>
+                    {cat.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Food grid */}
+              <div className="flex flex-wrap gap-2 max-h-64 overflow-y-auto pr-1" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.1) transparent' }}>
+                {QUICK_FOODS
+                  .filter(f => foodCategory === 'all' || f.category === foodCategory)
+                  .filter(f => !foodSearch || f.name.toLowerCase().includes(foodSearch.toLowerCase()))
+                  .map(food => (
                   <button key={food.name} onClick={() => quickAdd(activeSection, food)}
                     className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200"
                     style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#9ca3af' }}
@@ -315,6 +459,12 @@ export default function CheckinPage() {
                     {food.name} <span className="opacity-50">· {food.calories}</span>
                   </button>
                 ))}
+                {QUICK_FOODS
+                  .filter(f => foodCategory === 'all' || f.category === foodCategory)
+                  .filter(f => !foodSearch || f.name.toLowerCase().includes(foodSearch.toLowerCase()))
+                  .length === 0 && (
+                  <p className="text-xs text-gray-600 py-4 w-full text-center">No foods found. Try a different search or category.</p>
+                )}
               </div>
             </div>
           </div>

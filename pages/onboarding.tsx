@@ -2,13 +2,31 @@ import { useState, useEffect } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { supabase } from '@/lib/supabase'
-import { calculateBMR, calculateTDEE, calculateCalorieTarget, calculateMacros } from '@/lib/utils'
-import { Zap, ChevronRight, ChevronLeft, Check } from 'lucide-react'
+import { calculateBMR, calculateTDEE, calculateCalorieTarget, calculateMacros, adjustForHealthConditions } from '@/lib/utils'
+import { Zap, ChevronRight, ChevronLeft, Check, Plus, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 import Button from '@/components/ui/Button'
 import Input, { Select } from '@/components/ui/Input'
 
-const STEPS = ['Basic Info', 'Body Stats', 'Goals', 'Diet', 'Summary']
+const STEPS = ['Basic Info', 'Body Stats', 'Goals', 'Health', 'Diet', 'Summary']
+
+const DIABETES_OPTIONS = [
+  { value: 'none',        label: 'None' },
+  { value: 'type1',       label: 'Type 1 Diabetes' },
+  { value: 'type2',       label: 'Type 2 Diabetes' },
+  { value: 'prediabetic', label: 'Pre-diabetic' },
+  { value: 'gestational', label: 'Gestational Diabetes' },
+]
+
+const BP_OPTIONS = [
+  { value: 'normal',              label: 'Normal' },
+  { value: 'elevated',            label: 'Elevated' },
+  { value: 'high_stage1',         label: 'High — Stage 1' },
+  { value: 'high_stage2',         label: 'High — Stage 2' },
+  { value: 'hypertensive_crisis', label: 'Hypertensive Crisis' },
+]
+
+const ALLERGY_PRESETS = ['Gluten', 'Dairy', 'Nuts', 'Soy', 'Eggs', 'Shellfish', 'Lactose', 'Fish']
 
 const GOAL_OPTIONS = [
   { value: 'lose_weight',    label: 'Lose weight' },
@@ -49,7 +67,12 @@ export default function OnboardingPage() {
     goal: 'lose_weight',
     activity_level: 'moderate',
     diet_preference: 'omnivore',
+    diabetes_type: 'none',
+    bp_status: 'normal',
+    allergies: [] as string[],
+    medications: '',
   })
+  const [customAllergy, setCustomAllergy] = useState('')
   const [targets, setTargets] = useState({ calories: 0, protein: 0, carbs: 0, fat: 0 })
 
   useEffect(() => {
@@ -72,9 +95,10 @@ export default function OnboardingPage() {
       const tdee = calculateTDEE(bmr, form.activity_level as 'sedentary' | 'light' | 'moderate' | 'active' | 'very_active')
       const calories = calculateCalorieTarget(tdee, form.goal as 'lose_weight' | 'gain_muscle' | 'maintain' | 'improve_health')
       const macros = calculateMacros(calories, form.goal)
-      setTargets({ calories, ...macros })
+      const adjusted = adjustForHealthConditions(calories, macros, form.diabetes_type, form.bp_status)
+      setTargets(adjusted)
     }
-  }, [form.weight_kg, form.height_cm, form.age, form.gender, form.activity_level, form.goal])
+  }, [form.weight_kg, form.height_cm, form.age, form.gender, form.activity_level, form.goal, form.diabetes_type, form.bp_status])
 
   function update(field: string, value: string) {
     setForm(prev => ({ ...prev, [field]: value }))
@@ -95,13 +119,21 @@ export default function OnboardingPage() {
         weight_kg: parseFloat(form.weight_kg),
         goal: form.goal as 'lose_weight' | 'gain_muscle' | 'maintain' | 'improve_health',
         activity_level: form.activity_level as 'sedentary' | 'light' | 'moderate' | 'active' | 'very_active',
-        diet_preference: form.diet_preference as 'omnivore' | 'vegetarian' | 'vegan' | 'keto' | 'paleo' | 'halal' | 'kosher',
+        diet_preference: form.diet_preference as any,
         calorie_target: targets.calories,
         protein_target: targets.protein,
         carb_target: targets.carbs,
         fat_target: targets.fat,
+        diabetes_type: form.diabetes_type,
+        bp_status: form.bp_status,
+        allergies: form.allergies,
+        medications: form.medications ? form.medications.split(',').map(m => m.trim()).filter(Boolean) : [],
+        health_conditions: [
+          ...(form.diabetes_type !== 'none' ? [{ type: 'diabetes', subtype: form.diabetes_type }] : []),
+          ...(form.bp_status !== 'normal' ? [{ type: 'blood_pressure', status: form.bp_status }] : []),
+        ],
         onboarded: true,
-      })
+      } as any)
       .eq('id', session.user.id)
 
     if (error) {
@@ -294,8 +326,145 @@ export default function OnboardingPage() {
               </div>
             )}
 
-            {/* Step 3: Diet preference */}
+            {/* Step 3: Health Complications */}
             {step === 3 && (
+              <div className="space-y-5 mt-5">
+                <p className="text-gray-500 text-sm">Help us personalize your nutrition plan with your health info. This is optional but helps us give better advice.</p>
+
+                {/* Diabetes */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Diabetes Status</label>
+                  <div className="space-y-2">
+                    {DIABETES_OPTIONS.map(opt => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => update('diabetes_type', opt.value)}
+                        className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200"
+                        style={choiceBtnStyle(form.diabetes_type === opt.value)}
+                      >
+                        {opt.label}
+                        {form.diabetes_type === opt.value && (
+                          <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ background: 'rgba(16,185,129,0.3)' }}>
+                            <Check size={12} style={{ color: '#34d399' }} />
+                          </div>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Blood Pressure */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Blood Pressure</label>
+                  <div className="space-y-2">
+                    {BP_OPTIONS.map(opt => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => update('bp_status', opt.value)}
+                        className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200"
+                        style={choiceBtnStyle(form.bp_status === opt.value)}
+                      >
+                        {opt.label}
+                        {form.bp_status === opt.value && (
+                          <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ background: 'rgba(16,185,129,0.3)' }}>
+                            <Check size={12} style={{ color: '#34d399' }} />
+                          </div>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Allergies */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Food Allergies</label>
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {ALLERGY_PRESETS.map(a => (
+                      <button
+                        key={a}
+                        type="button"
+                        onClick={() => {
+                          setForm(prev => ({
+                            ...prev,
+                            allergies: prev.allergies.includes(a)
+                              ? prev.allergies.filter(x => x !== a)
+                              : [...prev.allergies, a],
+                          }))
+                        }}
+                        className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200"
+                        style={choiceBtnStyle(form.allergies.includes(a))}
+                      >
+                        {form.allergies.includes(a) && <span className="mr-1">&#10003;</span>}
+                        {a}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={customAllergy}
+                      onChange={e => setCustomAllergy(e.target.value)}
+                      placeholder="Add custom allergy..."
+                      className="flex-1 px-3 py-2 rounded-lg text-sm text-white placeholder:text-gray-600 focus:outline-none"
+                      style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)' }}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter' && customAllergy.trim()) {
+                          e.preventDefault()
+                          if (!form.allergies.includes(customAllergy.trim())) {
+                            setForm(prev => ({ ...prev, allergies: [...prev.allergies, customAllergy.trim()] }))
+                          }
+                          setCustomAllergy('')
+                        }
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (customAllergy.trim() && !form.allergies.includes(customAllergy.trim())) {
+                          setForm(prev => ({ ...prev, allergies: [...prev.allergies, customAllergy.trim()] }))
+                          setCustomAllergy('')
+                        }
+                      }}
+                      className="px-3 py-2 rounded-lg text-sm font-semibold transition-all"
+                      style={{ background: 'rgba(16,185,129,0.15)', color: '#34d399', border: '1px solid rgba(16,185,129,0.3)' }}
+                    >
+                      <Plus size={16} />
+                    </button>
+                  </div>
+                  {form.allergies.filter(a => !ALLERGY_PRESETS.includes(a)).length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {form.allergies.filter(a => !ALLERGY_PRESETS.includes(a)).map(a => (
+                        <span key={a} className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold"
+                          style={{ background: 'rgba(16,185,129,0.12)', color: '#34d399', border: '1px solid rgba(16,185,129,0.3)' }}>
+                          {a}
+                          <button type="button" onClick={() => setForm(prev => ({ ...prev, allergies: prev.allergies.filter(x => x !== a) }))}>
+                            <X size={12} />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Medications */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Current Medications <span className="text-gray-600 normal-case">(optional)</span></label>
+                  <input
+                    type="text"
+                    value={form.medications}
+                    onChange={e => update('medications', e.target.value)}
+                    placeholder="e.g., Metformin, Lisinopril (comma-separated)"
+                    className="w-full px-4 py-3 rounded-xl text-sm text-white placeholder:text-gray-600 focus:outline-none focus:shadow-[0_0_0_3px_rgba(16,185,129,0.12)]"
+                    style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.3)' }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Step 4: Diet preference */}
+            {step === 4 && (
               <div className="space-y-4 mt-5">
                 <p className="text-gray-500 text-sm">Select your diet preference or restrictions.</p>
                 <div className="grid grid-cols-2 gap-2.5">
@@ -315,8 +484,8 @@ export default function OnboardingPage() {
               </div>
             )}
 
-            {/* Step 4: Summary */}
-            {step === 4 && (
+            {/* Step 5: Summary */}
+            {step === 5 && (
               <div className="space-y-4 mt-5">
                 <p className="text-gray-500 text-sm">Here&apos;s your personalized nutrition plan based on your profile.</p>
 

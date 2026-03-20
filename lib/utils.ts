@@ -71,6 +71,46 @@ export function calculateMacros(calories: number, goal: string) {
   }
 }
 
+// Adjust macros for health conditions
+export function adjustForHealthConditions(
+  calories: number,
+  macros: { protein: number; carbs: number; fat: number },
+  diabetesType: string = 'none',
+  bpStatus: string = 'normal'
+): { calories: number; protein: number; carbs: number; fat: number } {
+  let { protein, carbs, fat } = macros
+  let adjustedCalories = calories
+
+  if (diabetesType === 'type1' || diabetesType === 'type2') {
+    // Reduce carbs by 15%, increase protein by 10%
+    const carbReduction = Math.round(carbs * 0.15)
+    const proteinIncrease = Math.round(protein * 0.10)
+    carbs -= carbReduction
+    protein += proteinIncrease
+    // Slight calorie reduction for diabetics
+    adjustedCalories = Math.round(calories * 0.95)
+  } else if (diabetesType === 'prediabetic') {
+    // Moderate carb reduction (10%)
+    const carbReduction = Math.round(carbs * 0.10)
+    carbs -= carbReduction
+    protein += Math.round(protein * 0.05)
+  } else if (diabetesType === 'gestational') {
+    // Moderate carb control, ensure adequate protein
+    const carbReduction = Math.round(carbs * 0.12)
+    carbs -= carbReduction
+    protein += Math.round(protein * 0.08)
+  }
+
+  if (bpStatus === 'high_stage1' || bpStatus === 'high_stage2' || bpStatus === 'hypertensive_crisis') {
+    // For high BP: slightly reduce calories, shift toward lean protein
+    adjustedCalories = Math.round(adjustedCalories * 0.97)
+    fat = Math.round(fat * 0.90)
+    protein += Math.round(protein * 0.05)
+  }
+
+  return { calories: adjustedCalories, protein, carbs, fat }
+}
+
 export function formatDate(date: Date | string): string {
   const d = typeof date === 'string' ? new Date(date) : date
   return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
