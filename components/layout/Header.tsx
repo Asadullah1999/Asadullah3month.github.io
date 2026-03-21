@@ -24,6 +24,15 @@ const NAV = [
   { href: '/grocery-list', icon: ShoppingCart,    label: 'Grocery List' },
 ]
 
+// 5 key tabs for bottom nav
+const BOTTOM_NAV = [
+  { href: '/dashboard', icon: LayoutDashboard, label: 'Home' },
+  { href: '/checkin',   icon: ClipboardList,   label: 'Log' },
+  { href: '/progress',  icon: TrendingUp,      label: 'Progress' },
+  { href: '/ai-chat',   icon: Bot,             label: 'AI' },
+  { href: '/profile',   icon: User,            label: 'Profile' },
+]
+
 export default function Header({ title, isAdmin }: { title?: string; isAdmin?: boolean }) {
   const [open, setOpen] = useState(false)
   const router = useRouter()
@@ -136,6 +145,54 @@ export default function Header({ title, isAdmin }: { title?: string; isAdmin?: b
           </nav>
         </div>
       )}
+
+      {/* Mobile bottom navigation bar */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around"
+        style={{
+          height: '62px',
+          background: 'rgba(5,5,15,0.96)',
+          backdropFilter: 'blur(24px)',
+          borderTop: '1px solid rgba(255,255,255,0.07)',
+          boxShadow: '0 -8px 32px rgba(0,0,0,0.5)',
+          paddingBottom: 'env(safe-area-inset-bottom)',
+        }}>
+        {BOTTOM_NAV.map(({ href, icon: Icon, label }) => {
+          const active = router.pathname === href || router.pathname.startsWith(href + '/')
+          return (
+            <Link
+              key={href}
+              href={href}
+              onClick={() => sounds.nav()}
+              className="flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 rounded-xl transition-all duration-200"
+              style={{
+                minWidth: '54px',
+                background: active ? 'rgba(16,185,129,0.1)' : 'transparent',
+              }}
+            >
+              <div className="relative">
+                <Icon
+                  size={20}
+                  className="transition-all duration-200"
+                  style={{
+                    color: active ? '#10b981' : '#4b5563',
+                    filter: active ? 'drop-shadow(0 0 6px rgba(16,185,129,0.7))' : 'none',
+                  }}
+                />
+                {active && (
+                  <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full"
+                    style={{ background: '#10b981', boxShadow: '0 0 6px rgba(16,185,129,1)' }} />
+                )}
+              </div>
+              <span
+                className="text-[10px] font-semibold tracking-wide transition-colors duration-200"
+                style={{ color: active ? '#10b981' : '#4b5563' }}
+              >
+                {label}
+              </span>
+            </Link>
+          )
+        })}
+      </nav>
 
       {/* Desktop page title bar */}
       {title && (
