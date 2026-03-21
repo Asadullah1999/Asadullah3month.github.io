@@ -1,94 +1,130 @@
-import { useEffect, useState } from 'react'
+import { GetServerSidePropsContext } from 'next'
+import { createServerClient } from '@supabase/ssr'
+import { createClient } from '@supabase/supabase-js'
 import { useRouter } from 'next/router'
+import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Zap, Loader2 } from 'lucide-react'
-import toast from 'react-hot-toast'
 
-export default function AuthCallbackPage() {
-  const router = useRouter()
-  const [error, setError] = useState('')
+// Server-side: exchange the PKCE code using cookies from the request
+export async function getServerSideProps(context: GetServerSidePropsContext) {
+  const { query, req, res } = context
+  const code = query.code as string | undefined
+  const error = query.error as string | undefined
+  const errorDescription = query.error_description as string | undefined
 
-  useEffect(() => {
-    async function handleCallback() {
-      try {
-        let session = null
+  if (error) {
+    return {
+      redirect: {
+        destination: `/auth/login?error=${encodeURIComponent(errorDescription || error)}`,
+        permanent: false,
+      },
+    }
+  }
 
-        // Check for PKCE auth code in query params (Supabase v2 default flow)
-        const urlParams = new URLSearchParams(window.location.search)
-        const code = urlParams.get('code')
+  if (code) {
+    const setCookieHeaders: string[] = []
 
-        if (code) {
-          const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
-          if (exchangeError) {
-            setError(exchangeError.message)
-            toast.error(exchangeError.message)
-            setTimeout(() => router.push('/auth/login'), 3000)
-            return
-          }
-          session = data.session
-        } else {
-          // Fall back to implicit flow (hash tokens) or existing session
-          const { data: { session: existingSession }, error: authError } = await supabase.auth.getSession()
-          if (authError) {
-            setError(authError.message)
-            toast.error(authError.message)
-            setTimeout(() => router.push('/auth/login'), 3000)
-            return
-          }
-          session = existingSession
-        }
-
-        if (!session) {
-          setError('No session found. Please try signing in again.')
-          setTimeout(() => router.push('/auth/login'), 3000)
-          return
-        }
-
-        const { data: user } = await supabase
-          .from('users')
-          .select('onboarded')
-          .eq('id', session.user.id)
-          .single() as { data: { onboarded: boolean } | null; error: unknown }
-
-        if (user && !user.onboarded) {
-          toast.success('Welcome! Let\'s set up your profile.')
-          router.push('/onboarding')
-        } else {
-          toast.success('Welcome back!')
-          router.push('/dashboard')
-        }
-      } catch (err) {
-        console.error('Auth callback error:', err)
-        setError('Something went wrong. Redirecting to login...')
-        setTimeout(() => router.push('/auth/login'), 3000)
+    const serverSupabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll: () =>
+            Object.entries(req.cookies || {}).map(([name, value]) => ({
+              name,
+              value: value || '',
+            })),
+          setAll: (cookiesToSet) => {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              const parts = [`${name}=${value}`, 'Path=/']
+              if (options?.maxAge != null) parts.push(`Max-Age=${options.maxAge}`)
+              if (options?.httpOnly) parts.push('HttpOnly')
+              if (options?.secure || process.env.NODE_ENV === 'production') parts.push('Secure')
+              parts.push(`SameSite=${options?.sameSite ?? 'Lax'}`)
+              setCookieHeaders.push(parts.join('; '))
+            })
+          },
+        },
       }
+    )
+
+    const { error: exchangeError } = await serverSupabase.auth.exchangeCodeForSession(code)
+
+    if (!exchangeError) {
+      if (setCookieHeaders.length > 0) {
+        res.setHeader('Set-Cookie', setCookieHeaders)
+      }
+
+      // Check if user needs onboarding
+      try {
+        const { data: { session } } = await serverSupabase.auth.getSession()
+        if (session?.user?.id) {
+          const adminClient = createClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.SUPABASE_SERVICE_ROLE_KEY!
+          )
+          const { data: user } = await adminClient
+            .from('users')
+            .select('onboarded')
+            .eq('id', session.user.id)
+            .single()
+
+          if (user && !user.onboarded) {
+            return { redirect: { destination: '/onboarding', permanent: false } }
+          }
+        }
+      } catch {
+        // ignore — fall through to dashboard
+      }
+
+      return { redirect: { destination: '/dashboard', permanent: false } }
     }
 
-    handleCallback()
+    // Exchange failed — redirect to login with error
+    return {
+      redirect: {
+        destination: '/auth/login?error=Authentication+failed.+Please+try+again.',
+        permanent: false,
+      },
+    }
+  }
+
+  // No code param — let client-side handle hash-based implicit flow tokens
+  return { props: {} }
+}
+
+// Client-side fallback (handles edge cases / hash-based tokens)
+export default function AuthCallbackPage() {
+  const router = useRouter()
+  const [status, setStatus] = useState('Signing you in...')
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        router.push('/dashboard')
+      } else {
+        setStatus('No session found. Redirecting...')
+        setTimeout(() => router.push('/auth/login'), 2000)
+      }
+    })
   }, [router])
 
   return (
     <div className="min-h-screen flex items-center justify-center" style={{ background: '#05050f' }}>
       <div className="text-center">
-        <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6"
+        <div
+          className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6"
           style={{
             background: 'linear-gradient(135deg, #10b981, #06b6d4)',
             boxShadow: '0 0 40px rgba(16,185,129,0.4)',
-          }}>
+          }}
+        >
           <Zap size={28} className="text-white" fill="white" />
         </div>
-        {error ? (
-          <>
-            <p className="text-red-400 text-lg font-semibold mb-2">{error}</p>
-            <p className="text-gray-500 text-sm">Redirecting to login...</p>
-          </>
-        ) : (
-          <>
-            <Loader2 size={24} className="text-brand-400 animate-spin mx-auto mb-4" />
-            <p className="text-white text-lg font-semibold mb-1">Signing you in...</p>
-            <p className="text-gray-500 text-sm">Please wait while we verify your account.</p>
-          </>
-        )}
+        <Loader2 size={24} className="text-brand-400 animate-spin mx-auto mb-4" />
+        <p className="text-white text-lg font-semibold mb-1">{status}</p>
+        <p className="text-gray-500 text-sm">Please wait while we verify your account.</p>
       </div>
     </div>
   )
