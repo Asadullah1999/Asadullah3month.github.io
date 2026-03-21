@@ -133,7 +133,6 @@ export default function WhatsAppPage() {
               <Wifi size={12} className="text-brand-400" />
               <span className="text-xs font-bold text-brand-400">Active</span>
             </div>
-          </div>
         </motion.div>
         )}
 
@@ -267,10 +266,10 @@ export default function WhatsAppPage() {
               </div>
             ))}
           </div>
-        </div>
+        </motion.div>
 
         {/* Example messages */}
-        <div className="rounded-2xl p-6"
+        <motion.div variants={cardAnim} className="rounded-2xl p-6"
           style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
           <div className="flex items-center justify-between mb-5">
             <h3 className="text-base font-bold text-white flex items-center gap-2">
@@ -295,10 +294,10 @@ export default function WhatsAppPage() {
               </div>
             ))}
           </div>
-        </div>
+        </motion.div>
 
         {/* Reminders CTA */}
-        <div className="flex items-center justify-between p-5 rounded-2xl transition-all duration-200 cursor-pointer group"
+        <motion.div variants={cardAnim} className="flex items-center justify-between p-5 rounded-2xl transition-all duration-200 cursor-pointer group"
           style={{
             background: 'linear-gradient(135deg, rgba(245,158,11,0.08), rgba(234,88,12,0.06))',
             border: '1px solid rgba(245,158,11,0.2)',
@@ -316,8 +315,8 @@ export default function WhatsAppPage() {
           <a href="/reminders" className="flex items-center gap-1 text-sm text-amber-400 font-semibold hover:text-amber-300 transition-colors">
             Manage <ChevronRight size={14} />
           </a>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
       </PlanGate>
     </DashboardLayout>
   )

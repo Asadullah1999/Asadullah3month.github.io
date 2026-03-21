@@ -11,7 +11,8 @@
       "Bash(do echo:*)",
       "Read(//c/Users/alasa/Downloads/Asadullah3month.github.io/**)",
       "Bash(done)",
-      "Bash(find pages:*)"
+      "Bash(find pages:*)",
+      "Bash(grep -v \"^$\")"
     ]
   }
 }
