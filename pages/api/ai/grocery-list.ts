@@ -42,28 +42,34 @@ User Profile:
 No active diet plan. No recent food logs.`
 
   if (userId) {
-    const { data: user } = await supabase
+    const { data: userRaw } = await supabase
       .from('users')
       .select('goal, diet_preference, calorie_target, protein_target, carb_target, fat_target, diabetes_type, bp_status, allergies, medications')
       .eq('id', userId)
       .single()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const user = userRaw as any
 
-    const { data: dietPlan } = await supabase
+    const { data: dietPlanRaw } = await supabase
       .from('diet_plans')
       .select('title, description')
       .eq('user_id', userId)
       .eq('is_active', true)
       .single()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const dietPlan = dietPlanRaw as any
 
     const today = new Date()
     const sevenDaysAgo = new Date(today)
     sevenDaysAgo.setDate(today.getDate() - 7)
 
-    const { data: recentLogs } = await supabase
+    const { data: recentLogsRaw } = await supabase
       .from('daily_logs')
       .select('breakfast, lunch, dinner, snacks')
       .eq('user_id', userId)
       .gte('log_date', sevenDaysAgo.toISOString().split('T')[0])
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const recentLogs = recentLogsRaw as any[] | null
 
     context = `
 User Profile:
@@ -75,7 +81,7 @@ ${dietPlan ? `Active Diet Plan: "${dietPlan.title}" — ${dietPlan.description |
 
 Recently consumed foods (last 7 days):
 ${recentLogs && recentLogs.length > 0
-  ? recentLogs.slice(0, 5).map((log, i) =>
+  ? recentLogs.slice(0, 5).map((log: any, i: number) =>
       `Day ${i + 1}: breakfast=${JSON.stringify(log.breakfast)?.slice(0, 80)}, lunch=${JSON.stringify(log.lunch)?.slice(0, 80)}`
     ).join('\n')
   : 'No recent food logs.'}`

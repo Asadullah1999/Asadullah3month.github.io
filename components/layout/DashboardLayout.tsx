@@ -116,7 +116,7 @@ export default function DashboardLayout({ children, title, pageTitle }: Dashboar
       <div className="min-h-screen" style={{ background: '#05050f' }}>
         <Sidebar isAdmin={isAdmin} user={user || undefined} />
         <Header title={title} isAdmin={isAdmin} />
-        <main className="lg:ml-60 pt-14 lg:pt-0">
+        <main className="lg:ml-60 pt-14 lg:pt-0 pb-20 lg:pb-0">
           <div className="max-w-5xl mx-auto px-4 lg:px-8 py-6 lg:py-8 animate-fade-in">
             <ErrorBoundary>
               {children}

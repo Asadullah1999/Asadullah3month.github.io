@@ -43,10 +43,10 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     }
 
     const hoverMap: Record<string, string> = {
-      primary: 'hover:brightness-110 hover:-translate-y-px active:translate-y-0',
-      secondary: 'hover:brightness-125 hover:text-white',
-      ghost: 'hover:bg-white/[0.06] hover:text-white',
-      danger: 'hover:brightness-110 hover:-translate-y-px active:translate-y-0',
+      primary: 'hover:brightness-110 hover:-translate-y-px active:scale-[0.97] active:brightness-95 active:translate-y-0',
+      secondary: 'hover:brightness-125 hover:text-white active:scale-[0.97] active:brightness-90',
+      ghost: 'hover:bg-white/[0.06] hover:text-white active:scale-[0.97] active:bg-white/[0.03]',
+      danger: 'hover:brightness-110 hover:-translate-y-px active:scale-[0.97] active:brightness-95 active:translate-y-0',
     }
 
     return (
