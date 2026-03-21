@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import DashboardLayout from '@/components/layout/DashboardLayout'
+import PlanGate from '@/components/ui/PlanGate'
 import Button from '@/components/ui/Button'
 import Card, { CardHeader, CardTitle } from '@/components/ui/Card'
 import { supabase } from '@/lib/supabase'
@@ -218,6 +219,7 @@ export default function BarcodeScannerPage() {
   return (
     <DashboardLayout title="Barcode Scanner">
       <Head><title>Barcode Scanner – FahmiFit</title></Head>
+      <PlanGate requiredPlan="premium">
 
       <div className="max-w-2xl mx-auto space-y-6">
         {/* Header */}
@@ -447,6 +449,7 @@ export default function BarcodeScannerPage() {
           </div>
         )}
       </div>
+      </PlanGate>
     </DashboardLayout>
   )
 }

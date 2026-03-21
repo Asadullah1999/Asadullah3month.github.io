@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import DashboardLayout from '@/components/layout/DashboardLayout'
+import PlanGate from '@/components/ui/PlanGate'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Badge from '@/components/ui/Badge'
@@ -103,6 +104,7 @@ export default function WeightLogPage() {
 
   return (
     <DashboardLayout pageTitle="Weight Log" title="Weight Tracker">
+      <PlanGate requiredPlan="pro">
       <div className="max-w-2xl mx-auto space-y-5">
 
         {/* Stats */}
@@ -267,6 +269,7 @@ export default function WeightLogPage() {
         </div>
 
       </div>
+      </PlanGate>
     </DashboardLayout>
   )
 }

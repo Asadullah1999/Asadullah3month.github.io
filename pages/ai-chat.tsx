@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import Head from 'next/head'
 import DashboardLayout from '@/components/layout/DashboardLayout'
+import PlanGate from '@/components/ui/PlanGate'
 import { supabase } from '@/lib/supabase'
 import toast from 'react-hot-toast'
 import { Send, Bot, User, Trash2, Sparkles, Zap, Brain, Leaf, Dumbbell, Heart } from 'lucide-react'
@@ -140,6 +141,7 @@ export default function AIChatPage() {
   return (
     <DashboardLayout title="AI Nutritionist Chat">
       <Head><title>AI Nutritionist · FahmiFit</title></Head>
+      <PlanGate requiredPlan="pro">
 
       <div className="max-w-3xl mx-auto flex flex-col" style={{ height: 'calc(100vh - 8rem)' }}>
         {/* Header */}
@@ -325,6 +327,8 @@ export default function AIChatPage() {
           </div>
         </div>
       </div>
+
+      </PlanGate>
     </DashboardLayout>
   )
 }

@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react'
 import Head from 'next/head'
 import DashboardLayout from '@/components/layout/DashboardLayout'
+import PlanGate from '@/components/ui/PlanGate'
 import { supabase } from '@/lib/supabase'
 import Button from '@/components/ui/Button'
 import Badge from '@/components/ui/Badge'
@@ -122,6 +123,7 @@ export default function GroceryListPage() {
   return (
     <DashboardLayout title="Smart Grocery List">
       <Head><title>Smart Grocery List – FahmiFit</title></Head>
+      <PlanGate requiredPlan="pro">
 
       <div className="max-w-2xl mx-auto space-y-5">
         {/* Header */}
@@ -293,6 +295,7 @@ export default function GroceryListPage() {
           </div>
         )}
       </div>
+      </PlanGate>
     </DashboardLayout>
   )
 }

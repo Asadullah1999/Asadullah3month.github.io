@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import DashboardLayout from '@/components/layout/DashboardLayout'
+import PlanGate from '@/components/ui/PlanGate'
 import { CardTitle } from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
@@ -90,6 +91,7 @@ export default function WhatsAppPage() {
 
   return (
     <DashboardLayout pageTitle="WhatsApp" title="WhatsApp Integration">
+      <PlanGate requiredPlan="pro">
       <div className="max-w-2xl mx-auto space-y-5">
 
         {/* Connected banner */}
@@ -297,6 +299,7 @@ export default function WhatsAppPage() {
           </a>
         </div>
       </div>
+      </PlanGate>
     </DashboardLayout>
   )
 }

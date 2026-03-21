@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import DashboardLayout from '@/components/layout/DashboardLayout'
+import PlanGate from '@/components/ui/PlanGate'
 import Button from '@/components/ui/Button'
 import Input, { Select } from '@/components/ui/Input'
 import Badge from '@/components/ui/Badge'
@@ -152,6 +153,7 @@ export default function RemindersPage() {
 
   return (
     <DashboardLayout pageTitle="Reminders" title="Reminders">
+      <PlanGate requiredPlan="pro">
       <div className="max-w-2xl mx-auto space-y-5">
 
         {/* Header actions */}
@@ -336,6 +338,7 @@ export default function RemindersPage() {
           </div>
         )}
       </div>
+      </PlanGate>
     </DashboardLayout>
   )
 }

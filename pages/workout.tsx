@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import DashboardLayout from '@/components/layout/DashboardLayout'
+import PlanGate from '@/components/ui/PlanGate'
 import Button from '@/components/ui/Button'
 import Input, { Select } from '@/components/ui/Input'
 import Badge from '@/components/ui/Badge'
@@ -133,6 +134,7 @@ export default function WorkoutPage() {
 
   return (
     <DashboardLayout pageTitle="Workout" title="Workout Tracker">
+      <PlanGate requiredPlan="premium">
       <div className="max-w-2xl mx-auto space-y-5">
 
         {/* Stats row */}
@@ -304,6 +306,7 @@ export default function WorkoutPage() {
         </div>
 
       </div>
+      </PlanGate>
     </DashboardLayout>
   )
 }

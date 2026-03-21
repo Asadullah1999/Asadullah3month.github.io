@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import DashboardLayout from '@/components/layout/DashboardLayout'
+import PlanGate from '@/components/ui/PlanGate'
 import Button from '@/components/ui/Button'
 import Card, { CardHeader, CardTitle } from '@/components/ui/Card'
 import { supabase } from '@/lib/supabase'
@@ -207,6 +208,7 @@ export default function MealScannerPage() {
   return (
     <DashboardLayout title="AI Meal Scanner">
       <Head><title>AI Meal Scanner – FahmiFit</title></Head>
+      <PlanGate requiredPlan="premium">
 
       <div className="max-w-2xl mx-auto space-y-6">
         {/* Header */}
@@ -386,6 +388,7 @@ export default function MealScannerPage() {
           </div>
         )}
       </div>
+      </PlanGate>
     </DashboardLayout>
   )
 }

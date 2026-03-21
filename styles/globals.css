@@ -353,3 +353,57 @@
   box-shadow: 0 8px 32px rgba(16,185,129,0.1), 0 0 0 1px rgba(16,185,129,0.15);
   transform: translateY(-2px);
 }
+
+/* === RAINBOW / GOLD GRADIENT TEXT === */
+.gradient-text-rainbow {
+  background: linear-gradient(135deg, #34d399 0%, #38bdf8 25%, #a78bfa 55%, #f472b6 80%, #fbbf24 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-text-gold {
+  background: linear-gradient(135deg, #fbbf24 0%, #f97316 60%, #ec4899 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* === SHIMMER BADGE (animated border glow) === */
+.shimmer-badge {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.12);
+  position: relative;
+  overflow: hidden;
+  border-radius: 9999px;
+}
+.shimmer-badge::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.08) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmer 2.5s linear infinite;
+  border-radius: inherit;
+}
+
+/* === ADDITIONAL ORB COLORS === */
+.orb-pink {
+  background: radial-gradient(circle, rgba(236,72,153,0.55) 0%, transparent 70%);
+}
+.orb-amber {
+  background: radial-gradient(circle, rgba(245,158,11,0.55) 0%, transparent 70%);
+}
+.orb-gold {
+  background: radial-gradient(circle, rgba(251,191,36,0.5) 0%, transparent 70%);
+}
+
+/* === PREMIUM CARD === */
+.card-premium {
+  @apply rounded-2xl shadow-elevated;
+  background: rgba(245,158,11,0.05);
+  border: 1px solid rgba(245,158,11,0.3);
+  box-shadow: 0 0 40px rgba(245,158,11,0.1);
+  position: relative;
+  overflow: hidden;
+}
