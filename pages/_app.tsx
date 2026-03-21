@@ -3,6 +3,7 @@ import type { AppProps } from 'next/app'
 import { useRouter } from 'next/router'
 import { Toaster } from 'react-hot-toast'
 import '@/styles/globals.css'
+import ChatBotWidget from '@/components/chatbot/ChatBotWidget'
 
 export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter()
@@ -39,6 +40,7 @@ export default function App({ Component, pageProps }: AppProps) {
       <div ref={mainRef} style={{ opacity: 1, transform: 'translateY(0)' }}>
         <Component {...pageProps} />
       </div>
+      <ChatBotWidget />
       <Toaster
         position="bottom-center"
         toastOptions={{

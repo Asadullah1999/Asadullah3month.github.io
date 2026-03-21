@@ -118,10 +118,10 @@ const PLANS = [
 ]
 
 const STATS = [
-  { value: '50K+', label: 'Active users' },
-  { value: '2M+', label: 'Meals logged' },
-  { value: '98%', label: 'Goal success rate' },
-  { value: '4.9★', label: 'Average rating' },
+  { value: '100%', label: 'Free to start', icon: '🆓' },
+  { value: 'AI', label: 'Powered nutrition coach', icon: '🤖' },
+  { value: '24/7', label: 'WhatsApp reminders', icon: '💬' },
+  { value: '6', label: 'Health goals supported', icon: '🎯' },
 ]
 
 const HOW_IT_WORKS = [
@@ -151,25 +151,25 @@ const HOW_IT_WORKS = [
 const TESTIMONIALS = [
   {
     initials: 'SR',
-    name: 'Sara R.',
-    role: 'Lost 12 kg in 3 months',
-    quote: 'FahmiFit changed the way I think about food. The AI coach is like having a nutritionist in my pocket 24/7.',
+    name: 'Early Beta User',
+    role: 'Weight loss journey',
+    quote: 'Having calorie targets calculated specifically for my body made a real difference. The dashboard keeps me honest every single day.',
     stars: 5,
     gradient: 'from-emerald-500 to-cyan-500',
   },
   {
     initials: 'MK',
-    name: 'Mohammed K.',
-    role: 'Gained lean muscle mass',
-    quote: 'The WhatsApp check-ins kept me accountable every single day. My macros have never been this dialed in.',
+    name: 'Muscle-gain goal',
+    role: 'Fitness & strength',
+    quote: 'The macro breakdown is exactly what I needed for bulking. Protein targets, carb cycling — it\'s all there without any guesswork.',
     stars: 5,
     gradient: 'from-violet-500 to-pink-500',
   },
   {
     initials: 'LA',
-    name: 'Layla A.',
-    role: 'Maintained goal weight',
-    quote: 'The progress charts are addictive in the best way. I actually look forward to logging meals now.',
+    name: 'Maintenance focus',
+    role: 'Long-term health',
+    quote: 'The weekly progress charts keep me motivated. Seeing the trend line move in the right direction is genuinely addictive.',
     stars: 5,
     gradient: 'from-orange-500 to-rose-500',
   },
@@ -499,11 +499,11 @@ export default function LandingPage() {
             >
               <div className="pill mb-4"><Star size={11} /> Testimonials</div>
               <h2 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight">
-                Real people,{' '}
-                <span className="gradient-text-violet">real results</span>
+                Goal stories{' '}
+                <span className="gradient-text-violet">from our users</span>
               </h2>
               <p className="text-gray-400 text-lg mt-4">
-                Join thousands who&apos;ve transformed their nutrition with FahmiFit.
+                Built for people who want real results — not guesswork.
               </p>
             </motion.div>
 
@@ -643,7 +643,7 @@ export default function LandingPage() {
                   <span className="gradient-text-rainbow">your nutrition?</span>
                 </h2>
                 <p className="text-gray-400 mb-8 text-lg">
-                  Join thousands who&apos;ve reached their goals with FahmiFit.
+                  Start free today — no credit card, no fluff, just results.
                 </p>
                 <Link href="/auth/signup" className="btn-gradient text-base px-12 py-4 rounded-xl font-bold">
                   Get started free <ChevronRight size={16} />
