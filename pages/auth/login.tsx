@@ -110,7 +110,7 @@ export default function LoginPage() {
 
             {/* Stats */}
             <motion.div variants={fadeUp} className="grid grid-cols-3 gap-3">
-              {[['50K+', 'Users'], ['2M+', 'Meals Logged'], ['4.9★', 'Rating']].map(([v, l]) => (
+              {[['Free', 'To get started'], ['AI', 'Nutrition coach'], ['24/7', 'WhatsApp support']].map(([v, l]) => (
                 <div key={l} className="p-3 rounded-2xl text-center"
                   style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
                   <p className="text-xl font-extrabold gradient-text">{v}</p>
