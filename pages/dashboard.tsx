@@ -114,8 +114,8 @@ export default function DashboardPage() {
   const firstName = user?.full_name?.split(' ')[0] || 'there'
 
   // BMI calc
-  const bmi = user?.height && user?.weight
-    ? Math.round((user.weight / Math.pow(user.height / 100, 2)) * 10) / 10
+  const bmi = user?.height_cm && user?.weight_kg
+    ? Math.round((user.weight_kg / Math.pow(user.height_cm / 100, 2)) * 10) / 10
     : null
   const bmiLabel = bmi
     ? bmi < 18.5 ? { text: 'Underweight', color: '#60a5fa' }
