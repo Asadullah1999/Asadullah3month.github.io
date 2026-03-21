@@ -1,5 +1,8 @@
 import DashboardLayout from '@/components/layout/DashboardLayout'
 import Button from '@/components/ui/Button'
+import PageHero from '@/components/ui/PageHero'
+import { motion } from 'framer-motion'
+import type { Variants } from 'framer-motion'
 import Link from 'next/link'
 import { ShieldCheck, CreditCard, Bell, User, MessageCircle, ChevronRight } from 'lucide-react'
 
@@ -46,12 +49,24 @@ const SETTINGS_SECTIONS = [
   },
 ]
 
+const stagger: Variants = { hidden: {}, visible: { transition: { staggerChildren: 0.1, delayChildren: 0.05 } } }
+const cardAnim: Variants = { hidden: { opacity: 0, y: 20, scale: 0.97 }, visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.45, ease: 'easeOut' } } }
+
 export default function SettingsPage() {
   return (
     <DashboardLayout pageTitle="Settings" title="Settings">
-      <div className="max-w-xl mx-auto space-y-3">
+      <PageHero
+        badge="Preferences"
+        badgeColor="#6b7280"
+        title="Account Settings"
+        highlight="Settings"
+        subtitle="Manage your account, notifications, and app preferences"
+        orbColors={['rgba(107,114,128,0.25)', 'rgba(255,255,255,0.05)']}
+      />
+      <motion.div className="max-w-xl mx-auto space-y-3" initial="hidden" animate="visible" variants={stagger}>
         {SETTINGS_SECTIONS.map(s => (
-          <Link key={s.href} href={s.href} className="block group">
+          <motion.div key={s.href} variants={cardAnim}>
+          <Link href={s.href} className="block group">
             <div
               className="flex items-center gap-4 p-5 rounded-2xl transition-all duration-200"
               style={{
@@ -80,10 +95,11 @@ export default function SettingsPage() {
               <ChevronRight size={16} className="text-gray-600 group-hover:text-gray-400 transition-colors" />
             </div>
           </Link>
+          </motion.div>
         ))}
 
         {/* Privacy section */}
-        <div
+        <motion.div variants={cardAnim}
           className="p-5 rounded-2xl"
           style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}
         >
@@ -99,8 +115,8 @@ export default function SettingsPage() {
             <Button variant="secondary" size="sm">Export my data</Button>
             <Button variant="danger" size="sm">Delete account</Button>
           </div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </DashboardLayout>
   )
 }

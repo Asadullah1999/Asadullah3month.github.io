@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react'
 import DashboardLayout from '@/components/layout/DashboardLayout'
+import PageHero from '@/components/ui/PageHero'
+import { motion } from 'framer-motion'
+import type { Variants } from 'framer-motion'
 import { CardTitle } from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
@@ -12,6 +15,8 @@ import {
   Wifi, Clock,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { usePlan } from '@/lib/usePlan'
+import PlanGate from '@/components/ui/PlanGate'
 
 const HOW_IT_WORKS = [
   { step: '01', title: 'Enter your WhatsApp number', desc: 'We send you a verification code via WhatsApp.', icon: <Phone size={16} /> },
@@ -34,6 +39,7 @@ export default function WhatsAppPage() {
   const [step, setStep] = useState<'enter' | 'verify' | 'connected'>('enter')
   const [loading, setLoading] = useState(false)
   const [sending, setSending] = useState(false)
+  const { plan, loading: planLoading } = usePlan()
 
   useEffect(() => { loadContact() }, [])
 
@@ -90,13 +96,25 @@ export default function WhatsAppPage() {
     setCode('')
   }
 
+  const stagger: Variants = { hidden: {}, visible: { transition: { staggerChildren: 0.1, delayChildren: 0.05 } } }
+  const cardAnim: Variants = { hidden: { opacity: 0, y: 20, scale: 0.97 }, visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.45, ease: 'easeOut' } } }
+
   return (
     <DashboardLayout pageTitle="WhatsApp" title="WhatsApp Integration">
-      <div className="max-w-2xl mx-auto space-y-5">
+      <PageHero
+        badge="WhatsApp"
+        badgeColor="#25D366"
+        title="WhatsApp Connect"
+        highlight="WhatsApp"
+        subtitle="Connect for daily meal reminders and nutrition tips"
+        orbColors={['rgba(37,211,102,0.3)', 'rgba(16,185,129,0.2)']}
+      />
+      <PlanGate requires="pro" currentPlan={plan} loading={planLoading} featureName="WhatsApp Reminders">
+      <motion.div className="max-w-2xl mx-auto space-y-5" initial="hidden" animate="visible" variants={stagger}>
 
         {/* Connected banner */}
         {step === 'connected' && (
-          <div className="flex items-center gap-4 p-5 rounded-2xl"
+          <motion.div variants={cardAnim} className="flex items-center gap-4 p-5 rounded-2xl"
             style={{
               background: 'linear-gradient(135deg, rgba(16,185,129,0.1) 0%, rgba(6,182,212,0.08) 100%)',
               border: '1px solid rgba(16,185,129,0.25)',
@@ -116,10 +134,11 @@ export default function WhatsAppPage() {
               <span className="text-xs font-bold text-brand-400">Active</span>
             </div>
           </div>
+        </motion.div>
         )}
 
         {/* Main card */}
-        <div className="rounded-2xl overflow-hidden"
+        <motion.div variants={cardAnim} className="rounded-2xl overflow-hidden"
           style={{
             background: 'rgba(255,255,255,0.03)',
             border: '1px solid rgba(255,255,255,0.08)',
@@ -222,10 +241,10 @@ export default function WhatsAppPage() {
               </div>
             )}
           </div>
-        </div>
+        </motion.div>
 
         {/* How it works */}
-        <div className="rounded-2xl p-6"
+        <motion.div variants={cardAnim} className="rounded-2xl p-6"
           style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
           <h3 className="text-base font-bold text-white mb-5 flex items-center gap-2">
             <Smartphone size={16} className="text-brand-400" /> How it works
@@ -299,6 +318,7 @@ export default function WhatsAppPage() {
           </a>
         </div>
       </div>
+      </PlanGate>
     </DashboardLayout>
   )
 }

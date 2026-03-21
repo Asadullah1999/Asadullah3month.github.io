@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react'
 import DashboardLayout from '@/components/layout/DashboardLayout'
 import Button from '@/components/ui/Button'
 import Input, { Select } from '@/components/ui/Input'
+import PageHero from '@/components/ui/PageHero'
+import { motion } from 'framer-motion'
+import type { Variants } from 'framer-motion'
 import { supabase } from '@/lib/supabase'
 import { calculateBMR, calculateTDEE, calculateCalorieTarget, calculateMacros, adjustForHealthConditions, getBMICategory } from '@/lib/utils'
 import { User } from '@/lib/database.types'
@@ -130,13 +133,24 @@ export default function ProfilePage() {
     { label: 'Fat',      value: user?.fat_target,     unit: 'g',    gradient: 'linear-gradient(135deg, rgba(234,179,8,0.12), rgba(245,158,11,0.08))', border: 'rgba(234,179,8,0.2)', color: '#facc15' },
   ]
 
+  const stagger: Variants = { hidden: {}, visible: { transition: { staggerChildren: 0.1, delayChildren: 0.05 } } }
+  const cardAnim: Variants = { hidden: { opacity: 0, y: 20, scale: 0.97 }, visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.45, ease: 'easeOut' } } }
+
   return (
     <DashboardLayout pageTitle="Profile" title="My Profile">
-      <div className="max-w-2xl mx-auto space-y-5">
+      <PageHero
+        badge="Your Profile"
+        badgeColor="#8b5cf6"
+        title="Health Profile"
+        highlight="Profile"
+        subtitle="Manage your personal health info and nutrition targets"
+        orbColors={['rgba(139,92,246,0.3)', 'rgba(236,72,153,0.2)']}
+      />
+      <motion.div className="max-w-2xl mx-auto space-y-5" initial="hidden" animate="visible" variants={stagger}>
 
         {/* Nutrition targets (read only) */}
         {user?.calorie_target && (
-          <div className="rounded-2xl overflow-hidden" style={{
+          <motion.div variants={cardAnim} className="rounded-2xl overflow-hidden" style={{
             background: 'linear-gradient(135deg, rgba(16,185,129,0.08), rgba(6,182,212,0.05))',
             border: '1px solid rgba(16,185,129,0.2)',
             boxShadow: '0 8px 32px rgba(16,185,129,0.08)',
@@ -168,11 +182,11 @@ export default function ProfilePage() {
                 </div>
               )}
             </div>
-          </div>
+          </motion.div>
         )}
 
         {/* Basic info */}
-        <div style={SECTION_STYLE}>
+        <motion.div variants={cardAnim} style={SECTION_STYLE}>
           <div className="flex items-center gap-2 mb-5">
             <div className="w-8 h-8 rounded-xl flex items-center justify-center"
               style={{ background: 'rgba(139,92,246,0.12)', border: '1px solid rgba(139,92,246,0.2)' }}>
@@ -223,10 +237,10 @@ export default function ProfilePage() {
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Body stats */}
-        <div style={SECTION_STYLE}>
+        <motion.div variants={cardAnim} style={SECTION_STYLE}>
           <div className="flex items-center gap-2 mb-5">
             <div className="w-8 h-8 rounded-xl flex items-center justify-center"
               style={{ background: 'rgba(6,182,212,0.12)', border: '1px solid rgba(6,182,212,0.2)' }}>
@@ -250,10 +264,10 @@ export default function ProfilePage() {
               placeholder="75"
             />
           </div>
-        </div>
+        </motion.div>
 
         {/* Goals */}
-        <div style={SECTION_STYLE}>
+        <motion.div variants={cardAnim} style={SECTION_STYLE}>
           <div className="flex items-center gap-2 mb-5">
             <div className="w-8 h-8 rounded-xl flex items-center justify-center"
               style={{ background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.2)' }}>
@@ -275,10 +289,10 @@ export default function ProfilePage() {
               options={ACTIVITY_OPTIONS}
             />
           </div>
-        </div>
+        </motion.div>
 
         {/* Diet */}
-        <div style={SECTION_STYLE}>
+        <motion.div variants={cardAnim} style={SECTION_STYLE}>
           <div className="flex items-center gap-2 mb-5">
             <div className="w-8 h-8 rounded-xl flex items-center justify-center"
               style={{ background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.2)' }}>
@@ -294,10 +308,10 @@ export default function ProfilePage() {
           <p className="text-xs text-gray-600 mt-2">
             This helps personalize your meal suggestions and nutrient recommendations.
           </p>
-        </div>
+        </motion.div>
 
         {/* Health Conditions */}
-        <div style={SECTION_STYLE}>
+        <motion.div variants={cardAnim} style={SECTION_STYLE}>
           <div className="flex items-center gap-2 mb-5">
             <div className="w-8 h-8 rounded-xl flex items-center justify-center"
               style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.2)' }}>
@@ -393,12 +407,14 @@ export default function ProfilePage() {
               placeholder="e.g., Metformin, Lisinopril"
             />
           </div>
-        </div>
+        </motion.div>
 
-        <Button onClick={saveProfile} loading={saving} size="lg" fullWidth>
-          <Save size={16} /> Save profile & recalculate targets
-        </Button>
-      </div>
+        <motion.div variants={cardAnim}>
+          <Button onClick={saveProfile} loading={saving} size="lg" fullWidth>
+            <Save size={16} /> Save profile & recalculate targets
+          </Button>
+        </motion.div>
+      </motion.div>
     </DashboardLayout>
   )
 }

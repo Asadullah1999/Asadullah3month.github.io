@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react'
 import DashboardLayout from '@/components/layout/DashboardLayout'
+import PageHero from '@/components/ui/PageHero'
+import { motion } from 'framer-motion'
+import type { Variants } from 'framer-motion'
 import Button from '@/components/ui/Button'
 import Input, { Select } from '@/components/ui/Input'
 import Badge from '@/components/ui/Badge'
@@ -45,6 +48,9 @@ const QUICK_EXERCISES = [
 ]
 
 const TYPE_OPTIONS = Object.entries(TYPE_CONFIG).map(([value, { label }]) => ({ value, label }))
+
+const stagger: Variants = { hidden: {}, visible: { transition: { staggerChildren: 0.1, delayChildren: 0.05 } } }
+const cardAnim: Variants = { hidden: { opacity: 0, y: 20, scale: 0.97 }, visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.45, ease: 'easeOut' } } }
 
 export default function WorkoutPage() {
   const [logs, setLogs] = useState<WorkoutLog[]>([])
@@ -133,10 +139,18 @@ export default function WorkoutPage() {
 
   return (
     <DashboardLayout pageTitle="Workout" title="Workout Tracker">
-      <div className="max-w-2xl mx-auto space-y-5">
+      <PageHero
+        badge="Fitness"
+        badgeColor="#ef4444"
+        title="Workout Tracker"
+        highlight="Workout"
+        subtitle="Log your exercises and track your fitness progress"
+        orbColors={['rgba(239,68,68,0.3)', 'rgba(249,115,22,0.2)']}
+      />
+      <motion.div className="max-w-2xl mx-auto space-y-5" initial="hidden" animate="visible" variants={stagger}>
 
         {/* Stats row */}
-        <div className="grid grid-cols-3 gap-3">
+        <motion.div variants={cardAnim} className="grid grid-cols-3 gap-3">
           {[
             { label: 'Today',         value: todayLogs.length,   unit: 'sessions', color: '#34d399', gradient: 'rgba(16,185,129,0.1)',  icon: <Dumbbell size={16} /> },
             { label: 'Week calories', value: totalCalThisWeek,   unit: 'kcal',     color: '#f87171', gradient: 'rgba(239,68,68,0.08)',  icon: <Flame size={16} />    },
@@ -149,10 +163,10 @@ export default function WorkoutPage() {
               <p className="text-xs text-gray-600">{s.label}</p>
             </div>
           ))}
-        </div>
+        </motion.div>
 
         {/* Quick add exercises */}
-        <div style={cardStyle} className="p-5">
+        <motion.div variants={cardAnim} style={cardStyle} className="p-5">
           <div className="flex items-center justify-between mb-4">
             <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Quick Add</p>
             <button
@@ -181,11 +195,11 @@ export default function WorkoutPage() {
               )
             })}
           </div>
-        </div>
+        </motion.div>
 
         {/* Log form */}
         {showForm && (
-          <div style={cardStyle} className="p-5">
+          <motion.div variants={cardAnim} style={cardStyle} className="p-5">
             <p className="font-bold text-white mb-4">Log Workout</p>
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -239,11 +253,11 @@ export default function WorkoutPage() {
                 <Button variant="secondary" onClick={() => setShowForm(false)}>Cancel</Button>
               </div>
             </div>
-          </div>
+          </motion.div>
         )}
 
         {/* Recent workouts */}
-        <div style={cardStyle} className="overflow-hidden">
+        <motion.div variants={cardAnim} style={cardStyle} className="overflow-hidden">
           <div className="px-5 py-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
             <div className="flex items-center justify-between">
               <p className="font-bold text-white">Recent Workouts</p>
@@ -301,9 +315,9 @@ export default function WorkoutPage() {
               })}
             </div>
           )}
-        </div>
+        </motion.div>
 
-      </div>
+      </motion.div>
     </DashboardLayout>
   )
 }
