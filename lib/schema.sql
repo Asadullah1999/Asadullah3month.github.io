@@ -257,3 +257,22 @@ create policy "chat_admin_read" on public.chat_messages
       where u.id = auth.uid() and u.role in ('admin','nutritionist')
     )
   );
+
+-- ─────────────────────────────────────────────
+-- SUPPORT TICKETS (chatbot widget)
+-- ─────────────────────────────────────────────
+create table if not exists public.support_tickets (
+  id          uuid primary key default uuid_generate_v4(),
+  user_id     uuid references public.users(id) on delete set null,
+  name        text not null,
+  email       text not null,
+  issue       text not null,
+  status      text default 'open' check (status in ('open', 'in_progress', 'resolved', 'closed')),
+  source      text default 'chatbot',
+  created_at  timestamptz default now()
+);
+
+alter table public.support_tickets enable row level security;
+
+create policy "tickets_insert_anon" on public.support_tickets for insert with check (true);
+create policy "tickets_select_own" on public.support_tickets for select using (auth.uid() = user_id);
