@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react'
 import DashboardLayout from '@/components/layout/DashboardLayout'
+import PageHero from '@/components/ui/PageHero'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
+import { motion } from 'framer-motion'
+import type { Variants } from 'framer-motion'
 import { supabase } from '@/lib/supabase'
 import { todayISO, formatDate } from '@/lib/utils'
 import { User, DailyLog, MealItem } from '@/lib/database.types'
@@ -10,6 +13,9 @@ import {
   Apple, Droplets, Flame, Target, Search,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
+
+const stagger: Variants = { hidden: {}, visible: { transition: { staggerChildren: 0.1, delayChildren: 0.05 } } }
+const cardAnim: Variants = { hidden: { opacity: 0, y: 20, scale: 0.97 }, visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.45, ease: 'easeOut' } } }
 
 type MealKey = 'breakfast' | 'lunch' | 'dinner' | 'snacks'
 
@@ -239,10 +245,18 @@ export default function CheckinPage() {
 
   return (
     <DashboardLayout pageTitle="Meal Check-in" title="Daily Meal Check-in">
-      <div className="space-y-5">
+      <PageHero
+        badge="Meal Log"
+        badgeColor="#f59e0b"
+        title="Today's Meals"
+        highlight="Meals"
+        subtitle="Log your breakfast, lunch, dinner & snacks"
+        orbColors={['rgba(245,158,11,0.3)', 'rgba(239,68,68,0.2)']}
+      />
+      <motion.div className="space-y-5" initial="hidden" animate="visible" variants={stagger}>
 
         {/* Date header */}
-        <div className="flex items-center justify-between">
+        <motion.div variants={cardAnim} className="flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-extrabold text-white">{formatDate(new Date())}</h2>
             <p className="text-sm text-gray-500 mt-0.5">Log your meals to track your nutrition</p>
@@ -253,7 +267,7 @@ export default function CheckinPage() {
               <CheckCircle2 size={15} /> Saved today
             </div>
           )}
-        </div>
+        </motion.div>
 
         {/* Calorie summary */}
         <div className="rounded-2xl p-5"
@@ -552,12 +566,12 @@ export default function CheckinPage() {
         </div>
 
         {/* Save */}
-        <div className="flex justify-end pb-4">
+        <motion.div variants={cardAnim} className="flex justify-end pb-4">
           <Button onClick={saveLog} loading={saving} size="lg">
             <Save size={16} /> Save today&apos;s log
           </Button>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </DashboardLayout>
   )
 }

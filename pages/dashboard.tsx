@@ -14,6 +14,11 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
+import { motion } from 'framer-motion'
+import type { Variants } from 'framer-motion'
+
+const stagger: Variants = { hidden: {}, visible: { transition: { staggerChildren: 0.08, delayChildren: 0.05 } } }
+const cardAnim: Variants = { hidden: { opacity: 0, y: 20, scale: 0.97 }, visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.45, ease: 'easeOut' } } }
 
 type MealEntry = { name: string; calories: number; protein: number; carbs: number; fat: number }
 
@@ -130,40 +135,53 @@ export default function DashboardPage() {
   return (
     <DashboardLayout pageTitle="Dashboard">
       {/* Greeting */}
-      <div className="mb-8 flex items-start justify-between flex-wrap gap-4">
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-brand-400">{timeIcon}</span>
-            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">{formatDate(new Date())}</span>
-          </div>
-          <h1 className="text-3xl font-extrabold tracking-tight" style={{ color: '#f0f4f8' }}>
-            {getGreeting()}, <span className="gradient-text-green">{firstName}</span> 👋
-          </h1>
-          <p className="text-gray-500 mt-1.5">Let&apos;s crush your nutrition goals today</p>
-        </div>
-        {streak >= 3 && (
-          <div className="flex items-center gap-2 px-4 py-2.5 rounded-2xl"
-            style={{
-              background: 'linear-gradient(135deg, rgba(245,158,11,0.12), rgba(239,68,68,0.08))',
-              border: '1px solid rgba(245,158,11,0.25)',
-              boxShadow: '0 4px 14px rgba(245,158,11,0.15)',
-            }}>
-            <span className="text-2xl">🔥</span>
-            <div>
-              <p className="text-xs text-amber-500 font-bold uppercase tracking-wide">Hot streak!</p>
-              <p className="text-white font-extrabold text-sm">{streak} days in a row</p>
+      <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
+        className="mb-8 relative overflow-hidden rounded-2xl px-6 py-6"
+        style={{
+          background: 'linear-gradient(135deg, rgba(16,185,129,0.07) 0%, rgba(6,182,212,0.04) 100%)',
+          border: '1px solid rgba(16,185,129,0.15)',
+        }}>
+        {/* Orbs */}
+        <div className="absolute -top-6 -right-6 w-32 h-32 rounded-full pointer-events-none"
+          style={{ background: 'radial-gradient(circle, rgba(16,185,129,0.3), transparent)', filter: 'blur(24px)' }} />
+        <div className="absolute -bottom-6 left-1/3 w-24 h-24 rounded-full pointer-events-none"
+          style={{ background: 'radial-gradient(circle, rgba(6,182,212,0.2), transparent)', filter: 'blur(20px)' }} />
+        <div className="relative z-10 flex items-start justify-between flex-wrap gap-4">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-brand-400">{timeIcon}</span>
+              <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">{formatDate(new Date())}</span>
             </div>
+            <h1 className="text-3xl font-extrabold tracking-tight" style={{ color: '#f0f4f8' }}>
+              {getGreeting()}, <span className="gradient-text-green">{firstName}</span> 👋
+            </h1>
+            <p className="text-gray-500 mt-1.5">Let&apos;s crush your nutrition goals today</p>
           </div>
-        )}
-      </div>
+          {streak >= 3 && (
+            <div className="flex items-center gap-2 px-4 py-2.5 rounded-2xl"
+              style={{
+                background: 'linear-gradient(135deg, rgba(245,158,11,0.12), rgba(239,68,68,0.08))',
+                border: '1px solid rgba(245,158,11,0.25)',
+                boxShadow: '0 4px 14px rgba(245,158,11,0.15)',
+              }}>
+              <span className="text-2xl">🔥</span>
+              <div>
+                <p className="text-xs text-amber-500 font-bold uppercase tracking-wide">Hot streak!</p>
+                <p className="text-white font-extrabold text-sm">{streak} days in a row</p>
+              </div>
+            </div>
+          )}
+        </div>
+      </motion.div>
 
       {/* Stat cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-        <StatCard title="Calorie Target" value={caloriesTarget} unit="kcal" icon={<Flame size={18} />} color="orange" sub={`${caloriesConsumed} consumed`} />
-        <StatCard title="7-Day Streak"   value={streak}           unit="days" icon={<Award size={18} />}  color="purple" sub="Keep it going!" />
-        <StatCard title="Weekly Avg"     value={weeklyAvg || '—'} unit={weeklyAvg ? 'kcal' : ''} icon={<TrendingUp size={18} />} color="cyan" sub="Avg calories / day" />
-        <StatCard title="Water Today"    value={Math.round(waterMl / 1000 * 10) / 10} unit="L" icon={<Droplets size={18} />} color="blue" sub={`Target: ${waterTarget / 1000}L`} />
-      </div>
+      <motion.div initial="hidden" animate="visible" variants={stagger}
+        className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
+        <motion.div variants={cardAnim}><StatCard title="Calorie Target" value={caloriesTarget} unit="kcal" icon={<Flame size={18} />} color="orange" sub={`${caloriesConsumed} consumed`} /></motion.div>
+        <motion.div variants={cardAnim}><StatCard title="7-Day Streak"   value={streak}           unit="days" icon={<Award size={18} />}  color="purple" sub="Keep it going!" /></motion.div>
+        <motion.div variants={cardAnim}><StatCard title="Weekly Avg"     value={weeklyAvg || '—'} unit={weeklyAvg ? 'kcal' : ''} icon={<TrendingUp size={18} />} color="cyan" sub="Avg calories / day" /></motion.div>
+        <motion.div variants={cardAnim}><StatCard title="Water Today"    value={Math.round(waterMl / 1000 * 10) / 10} unit="L" icon={<Droplets size={18} />} color="blue" sub={`Target: ${waterTarget / 1000}L`} /></motion.div>
+      </motion.div>
 
       {/* Main grid */}
       <div className="grid lg:grid-cols-3 gap-5">

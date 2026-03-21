@@ -41,6 +41,9 @@ User Profile:
 - Daily Targets: 2000 kcal, 150g protein, 200g carbs, 65g fat
 No active diet plan. No recent food logs.`
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let userForHealth: any = null
+
   if (userId) {
     const { data: userRaw } = await supabase
       .from('users')
@@ -49,6 +52,7 @@ No active diet plan. No recent food logs.`
       .single()
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const user = userRaw as any
+    userForHealth = user
 
     const { data: dietPlanRaw } = await supabase
       .from('diet_plans')
@@ -88,12 +92,12 @@ ${recentLogs && recentLogs.length > 0
   }
 
   // Build health context
-  const healthContext = userId && user ? `
+  const healthContext = userId && userForHealth ? `
 Health Information:
-- Diabetes: ${(user as any).diabetes_type && (user as any).diabetes_type !== 'none' ? (user as any).diabetes_type : 'None'}
-- Blood Pressure: ${(user as any).bp_status && (user as any).bp_status !== 'normal' ? (user as any).bp_status : 'Normal'}
-- Allergies: ${(user as any).allergies?.length ? (user as any).allergies.join(', ') : 'None'}
-- Medications: ${(user as any).medications?.length ? (user as any).medications.join(', ') : 'None'}` : ''
+- Diabetes: ${userForHealth.diabetes_type && userForHealth.diabetes_type !== 'none' ? userForHealth.diabetes_type : 'None'}
+- Blood Pressure: ${userForHealth.bp_status && userForHealth.bp_status !== 'normal' ? userForHealth.bp_status : 'Normal'}
+- Allergies: ${userForHealth.allergies?.length ? userForHealth.allergies.join(', ') : 'None'}
+- Medications: ${userForHealth.medications?.length ? userForHealth.medications.join(', ') : 'None'}` : ''
 
   const isSouthIndian = context.includes('south_indian')
   const prompt = `Based on this nutrition profile, generate a comprehensive weekly grocery shopping list.

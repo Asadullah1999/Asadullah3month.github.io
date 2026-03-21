@@ -1,6 +1,9 @@
 import { useState, useCallback, useEffect } from 'react'
 import Head from 'next/head'
 import DashboardLayout from '@/components/layout/DashboardLayout'
+import PageHero from '@/components/ui/PageHero'
+import { motion } from 'framer-motion'
+import type { Variants } from 'framer-motion'
 import { supabase } from '@/lib/supabase'
 import Button from '@/components/ui/Button'
 import Badge from '@/components/ui/Badge'
@@ -9,6 +12,8 @@ import {
   ShoppingCart, RefreshCw, CheckSquare, Square, Trash2,
   Leaf, Beef, Wheat, Milk, Package, Coffee, MoreHorizontal, Download,
 } from 'lucide-react'
+import { usePlan } from '@/lib/usePlan'
+import PlanGate from '@/components/ui/PlanGate'
 
 type Category = 'produce' | 'proteins' | 'grains' | 'dairy' | 'pantry' | 'beverages' | 'other'
 
@@ -36,6 +41,9 @@ const CATEGORY_CONFIG: Record<Category, {
   other:     { label: 'Other',      icon: MoreHorizontal, iconColor: '#9ca3af', iconBg: 'rgba(156,163,175,0.12)', iconBorder: 'rgba(156,163,175,0.25)', accentColor: 'rgba(156,163,175,0.05)' },
 }
 
+const stagger: Variants = { hidden: {}, visible: { transition: { staggerChildren: 0.1, delayChildren: 0.05 } } }
+const cardAnim: Variants = { hidden: { opacity: 0, y: 20, scale: 0.97 }, visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.45, ease: 'easeOut' } } }
+
 export default function GroceryListPage() {
   const [items, setItems] = useState<GroceryItem[]>([])
   const [summary, setSummary] = useState('')
@@ -43,6 +51,7 @@ export default function GroceryListPage() {
   const [generating, setGenerating] = useState(false)
   const [generated, setGenerated] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
+  const { plan, loading: planLoading } = usePlan()
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -122,10 +131,19 @@ export default function GroceryListPage() {
   return (
     <DashboardLayout title="Smart Grocery List">
       <Head><title>Smart Grocery List – FahmiFit</title></Head>
+      <PageHero
+        badge="Smart List"
+        badgeColor="#f97316"
+        title="AI Grocery List"
+        highlight="Grocery List"
+        subtitle="Auto-generated shopping list based on your nutrition plan"
+        orbColors={['rgba(249,115,22,0.3)', 'rgba(245,158,11,0.2)']}
+      />
 
-      <div className="max-w-2xl mx-auto space-y-5">
+      <PlanGate requires="pro" currentPlan={plan} loading={planLoading} featureName="Smart Grocery List">
+      <motion.div className="max-w-2xl mx-auto space-y-5" initial="hidden" animate="visible" variants={stagger}>
         {/* Header */}
-        <div className="flex items-start justify-between">
+        <motion.div variants={cardAnim} className="flex items-start justify-between">
           <div>
             <h1 className="text-2xl font-extrabold text-white">Smart Grocery List</h1>
             <p className="text-gray-500 mt-1 text-sm">AI-generated based on your meal plan and nutrition goals.</p>
@@ -140,7 +158,7 @@ export default function GroceryListPage() {
               </Button>
             </div>
           )}
-        </div>
+        </motion.div>
 
         {/* Generate CTA */}
         {!generated && (
@@ -292,7 +310,8 @@ export default function GroceryListPage() {
             </div>
           </div>
         )}
-      </div>
+      </motion.div>
+      </PlanGate>
     </DashboardLayout>
   )
 }

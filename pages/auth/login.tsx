@@ -3,10 +3,22 @@ import Head from 'next/head'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { supabase } from '@/lib/supabase'
-import { Mail, Lock, Eye, EyeOff, Zap, ChevronRight } from 'lucide-react'
+import { Mail, Lock, Eye, EyeOff, Zap, ChevronRight, Sparkles, Shield, Brain, Target } from 'lucide-react'
 import toast from 'react-hot-toast'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
+import { motion } from 'framer-motion'
+import type { Variants } from 'framer-motion'
+
+const fadeUp: Variants = { hidden: { opacity: 0, y: 24 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] } } }
+const stagger: Variants = { hidden: {}, visible: { transition: { staggerChildren: 0.1, delayChildren: 0.05 } } }
+
+const FEATURES = [
+  { icon: Brain,    label: 'AI Nutritionist',      desc: 'Smart meal advice at your fingertips', color: '#10b981' },
+  { icon: Target,   label: 'Goal Tracking',         desc: 'Calorie & macro targets, visualised',  color: '#06b6d4' },
+  { icon: Shield,   label: 'Health Insights',       desc: 'Personalized for your health profile', color: '#8b5cf6' },
+  { icon: Sparkles, label: 'WhatsApp Reminders',    desc: 'Daily nudges so you never miss a meal', color: '#f97316' },
+]
 
 export default function LoginPage() {
   const router = useRouter()
@@ -35,42 +47,91 @@ export default function LoginPage() {
     <>
       <Head><title>Sign In · FahmiFit</title></Head>
       <div className="min-h-screen flex" style={{ background: '#05050f' }}>
-        {/* Left: decorative */}
-        <div className="hidden lg:flex flex-1 flex-col items-center justify-center relative overflow-hidden p-12"
-          style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.06) 0%, rgba(139,92,246,0.06) 100%)' }}>
-          <div className="absolute top-1/4 left-1/4 w-64 h-64 rounded-full opacity-20 animate-aurora"
-            style={{ background: 'radial-gradient(circle, rgba(16,185,129,0.8), transparent)', filter: 'blur(60px)' }} />
-          <div className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full opacity-15 animate-aurora"
-            style={{ background: 'radial-gradient(circle, rgba(139,92,246,0.8), transparent)', filter: 'blur(80px)', animationDelay: '4s' }} />
-          <div className="relative z-10 text-center max-w-md">
-            <div className="w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-8"
-              style={{
-                background: 'linear-gradient(135deg, #10b981, #06b6d4)',
-                boxShadow: '0 0 60px rgba(16,185,129,0.5)',
-              }}>
-              <Zap size={36} className="text-white" fill="white" />
-            </div>
-            <h1 className="text-4xl font-extrabold text-white mb-4 tracking-tight">
-              Welcome to <span className="gradient-text">FahmiFit</span>
-            </h1>
-            <p className="text-gray-400 text-lg leading-relaxed">
-              Your personal AI nutrition coach. Track meals, get WhatsApp reminders, and reach your goals faster.
-            </p>
-            <div className="grid grid-cols-3 gap-4 mt-10">
-              {[['50K+','Users'],['2M+','Meals'],['4.9★','Rating']].map(([v,l]) => (
-                <div key={l} className="p-4 rounded-2xl text-center"
+
+        {/* Left decorative panel */}
+        <div className="hidden lg:flex flex-1 flex-col items-center justify-center relative overflow-hidden p-12">
+          {/* Orbs */}
+          <div className="absolute top-1/4 left-1/4 w-72 h-72 rounded-full pointer-events-none"
+            style={{ background: 'radial-gradient(circle, rgba(16,185,129,0.35), transparent)', filter: 'blur(60px)', animation: 'aurora 12s ease-in-out infinite' }} />
+          <div className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full pointer-events-none"
+            style={{ background: 'radial-gradient(circle, rgba(139,92,246,0.3), transparent)', filter: 'blur(80px)', animation: 'aurora 16s ease-in-out infinite', animationDelay: '4s' }} />
+          <div className="absolute top-1/2 right-1/3 w-48 h-48 rounded-full pointer-events-none"
+            style={{ background: 'radial-gradient(circle, rgba(6,182,212,0.25), transparent)', filter: 'blur(50px)', animation: 'aurora 10s ease-in-out infinite', animationDelay: '8s' }} />
+          <div className="absolute top-0 left-0 right-0 h-px"
+            style={{ background: 'linear-gradient(90deg, transparent, rgba(16,185,129,0.4), rgba(6,182,212,0.3), transparent)' }} />
+
+          {/* Grid */}
+          <div className="absolute inset-0 opacity-[0.03]"
+            style={{
+              backgroundImage: 'linear-gradient(rgba(255,255,255,1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px)',
+              backgroundSize: '48px 48px',
+            }} />
+
+          <motion.div
+            initial="hidden" animate="visible" variants={stagger}
+            className="relative z-10 max-w-md w-full">
+            {/* Logo */}
+            <motion.div variants={fadeUp} className="flex items-center gap-3 mb-10">
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center"
+                style={{ background: 'linear-gradient(135deg, #10b981, #06b6d4)', boxShadow: '0 0 40px rgba(16,185,129,0.5)' }}>
+                <Zap size={28} className="text-white" fill="white" />
+              </div>
+              <div>
+                <p className="text-2xl font-extrabold gradient-text tracking-tight">FahmiFit</p>
+                <p className="text-xs text-gray-500 font-medium">AI-Powered Nutrition</p>
+              </div>
+            </motion.div>
+
+            <motion.h1 variants={fadeUp} className="text-4xl font-extrabold text-white mb-3 tracking-tight leading-tight">
+              Eat smart.<br />
+              <span className="gradient-text-rainbow">Live strong.</span>
+            </motion.h1>
+            <motion.p variants={fadeUp} className="text-gray-400 text-base leading-relaxed mb-10">
+              Your personal AI nutrition coach. Track meals, log workouts, and crush your health goals.
+            </motion.p>
+
+            {/* Feature list */}
+            <motion.div variants={stagger} className="space-y-4 mb-10">
+              {FEATURES.map(({ icon: Icon, label, desc, color }) => (
+                <motion.div key={label} variants={fadeUp}
+                  className="flex items-center gap-4 p-4 rounded-2xl"
+                  style={{ background: `rgba(255,255,255,0.03)`, border: '1px solid rgba(255,255,255,0.07)' }}>
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                    style={{ background: `${color}20`, border: `1px solid ${color}30` }}>
+                    <Icon size={18} style={{ color }} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-white">{label}</p>
+                    <p className="text-xs text-gray-500">{desc}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
+
+            {/* Stats */}
+            <motion.div variants={fadeUp} className="grid grid-cols-3 gap-3">
+              {[['50K+', 'Users'], ['2M+', 'Meals Logged'], ['4.9★', 'Rating']].map(([v, l]) => (
+                <div key={l} className="p-3 rounded-2xl text-center"
                   style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                  <p className="text-2xl font-extrabold gradient-text-green">{v}</p>
-                  <p className="text-xs text-gray-500 mt-1">{l}</p>
+                  <p className="text-xl font-extrabold gradient-text">{v}</p>
+                  <p className="text-[10px] text-gray-500 mt-0.5">{l}</p>
                 </div>
               ))}
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </div>
 
         {/* Right: form */}
-        <div className="flex-1 lg:max-w-md flex flex-col justify-center px-8 py-12">
-          <div className="max-w-sm mx-auto w-full">
+        <motion.div
+          initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5, delay: 0.1 }}
+          className="flex-1 lg:max-w-md flex flex-col justify-center px-8 py-12 relative"
+          style={{ borderLeft: '1px solid rgba(255,255,255,0.06)' }}>
+
+          {/* Form-side ambient glow */}
+          <div className="absolute top-0 right-0 w-64 h-64 pointer-events-none"
+            style={{ background: 'radial-gradient(circle at 80% 10%, rgba(16,185,129,0.07), transparent)', filter: 'blur(40px)' }} />
+
+          <div className="max-w-sm mx-auto w-full relative z-10">
             {/* Mobile logo */}
             <div className="lg:hidden flex items-center gap-2.5 mb-10">
               <div className="w-10 h-10 rounded-xl flex items-center justify-center"
@@ -81,17 +142,15 @@ export default function LoginPage() {
             </div>
 
             <h2 className="text-3xl font-extrabold text-white mb-2">Welcome back</h2>
-            <p className="text-gray-500 mb-8">Sign in to continue your nutrition journey</p>
+            <p className="text-gray-500 mb-8 text-sm">Sign in to continue your nutrition journey</p>
 
             {/* Google */}
             <button onClick={handleGoogleLogin}
-              className="w-full flex items-center justify-center gap-3 py-3 rounded-xl text-sm font-semibold text-white transition-all duration-200 mb-6"
+              className="w-full flex items-center justify-center gap-3 py-3 rounded-xl text-sm font-semibold text-white transition-all duration-200 mb-6 hover:brightness-110"
               style={{
                 background: 'rgba(255,255,255,0.05)',
                 border: '1px solid rgba(255,255,255,0.12)',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.18)' }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)' }}>
+              }}>
               <svg className="w-4 h-4" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                 <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -155,7 +214,7 @@ export default function LoginPage() {
               </Link>
             </p>
           </div>
-        </div>
+        </motion.div>
       </div>
     </>
   )

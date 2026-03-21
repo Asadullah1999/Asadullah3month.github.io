@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(node -e \"require\\(''framer-motion''\\); console.log\\(''ok''\\)\")",
+      "Bash(npm run:*)",
+      "Bash(npx tsc:*)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(ls -lh \"C:\\\\Users\\\\alasa\\\\Downloads\\\\Asadullah3month.github.io/pages\"/*.tsx \"C:\\\\Users\\\\alasa\\\\Downloads\\\\Asadullah3month.github.io/pages/auth\"/*.tsx)",
+      "Bash(for file:*)",
+      "Bash(do echo:*)",
+      "Read(//c/Users/alasa/Downloads/Asadullah3month.github.io/**)",
+      "Bash(done)",
+      "Bash(find pages:*)",
+      "Bash(grep -v \"^$\")"
+    ]
+  }
+}

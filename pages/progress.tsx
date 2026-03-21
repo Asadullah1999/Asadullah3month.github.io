@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react'
 import DashboardLayout from '@/components/layout/DashboardLayout'
+import PageHero from '@/components/ui/PageHero'
+import { motion } from 'framer-motion'
+import type { Variants } from 'framer-motion'
 import Card, { CardHeader, CardTitle, StatCard } from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
 import { WeeklyCalorieChart, MacroLineChart, WaterChart } from '@/components/charts/WeeklyChart'
@@ -107,11 +110,22 @@ export default function ProgressPage() {
     color: '#9ca3af',
   }
 
+  const stagger: Variants = { hidden: {}, visible: { transition: { staggerChildren: 0.1, delayChildren: 0.05 } } }
+  const cardAnim: Variants = { hidden: { opacity: 0, y: 20, scale: 0.97 }, visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.45, ease: 'easeOut' } } }
+
   return (
     <DashboardLayout pageTitle="Progress" title="Weekly Progress">
-      <div className="space-y-6">
+      <PageHero
+        badge="Analytics"
+        badgeColor="#06b6d4"
+        title="Weekly Progress"
+        highlight="Progress"
+        subtitle="Track your calories, macros & hydration over time"
+        orbColors={['rgba(6,182,212,0.3)', 'rgba(16,185,129,0.2)']}
+      />
+      <motion.div className="space-y-6" initial="hidden" animate="visible" variants={stagger}>
         {/* Week selector */}
-        <div className="flex items-center justify-between">
+        <motion.div variants={cardAnim} className="flex items-center justify-between">
           <div>
             <h2 className="text-lg font-bold text-white">{weekLabel}</h2>
             {weekData[0] && weekData[6] && (
@@ -145,10 +159,10 @@ export default function ProgressPage() {
               <ChevronRight size={16} />
             </button>
           </div>
-        </div>
+        </motion.div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <motion.div variants={cardAnim} className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard
             title="Days Logged"
             value={daysLogged}
@@ -181,10 +195,10 @@ export default function ProgressPage() {
             color="blue"
             sub="Target: 2.5L/day"
           />
-        </div>
+        </motion.div>
 
         {/* Weekly adherence grid */}
-        <div className="rounded-2xl p-6" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
+        <motion.div variants={cardAnim} className="rounded-2xl p-6" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
           <p className="text-sm font-bold text-white mb-4 uppercase tracking-wider">Daily Adherence</p>
           <div className="grid grid-cols-7 gap-2">
             {weekData.map(day => {
@@ -233,10 +247,10 @@ export default function ProgressPage() {
               Over target
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Calorie bar chart */}
-        <div className="rounded-2xl p-6" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
+        <motion.div variants={cardAnim} className="rounded-2xl p-6" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
           <div className="flex items-center justify-between mb-4">
             <p className="text-sm font-bold text-white uppercase tracking-wider">Calories This Week</p>
             <Badge variant="green">{daysLogged} days logged</Badge>
@@ -254,10 +268,10 @@ export default function ProgressPage() {
               <p className="text-sm">No data for this week</p>
             </div>
           )}
-        </div>
+        </motion.div>
 
         {/* Macro line chart */}
-        <div className="rounded-2xl p-6" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
+        <motion.div variants={cardAnim} className="rounded-2xl p-6" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
           <div className="flex items-center justify-between mb-4">
             <p className="text-sm font-bold text-white uppercase tracking-wider">Macro Trends</p>
             <div className="flex items-center gap-3 text-xs text-gray-500">
@@ -280,10 +294,10 @@ export default function ProgressPage() {
               <p className="text-sm">No data for this week</p>
             </div>
           )}
-        </div>
+        </motion.div>
 
         {/* Water chart */}
-        <div className="rounded-2xl p-6" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
+        <motion.div variants={cardAnim} className="rounded-2xl p-6" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
           <div className="flex items-center justify-between mb-4">
             <p className="text-sm font-bold text-white uppercase tracking-wider">Water Intake</p>
             <span className="text-xs text-gray-500">Target: 2,500ml</span>
@@ -295,10 +309,10 @@ export default function ProgressPage() {
               <p className="text-sm">No data for this week</p>
             </div>
           )}
-        </div>
+        </motion.div>
 
         {/* Day-by-day table */}
-        <div className="rounded-2xl p-6" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
+        <motion.div variants={cardAnim} className="rounded-2xl p-6" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
           <p className="text-sm font-bold text-white mb-4 uppercase tracking-wider">Detailed Log</p>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -359,8 +373,8 @@ export default function ProgressPage() {
               </tbody>
             </table>
           </div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </DashboardLayout>
   )
 }

@@ -3,6 +3,9 @@ import DashboardLayout from '@/components/layout/DashboardLayout'
 import Button from '@/components/ui/Button'
 import Input, { Select } from '@/components/ui/Input'
 import Badge from '@/components/ui/Badge'
+import PageHero from '@/components/ui/PageHero'
+import { motion } from 'framer-motion'
+import type { Variants } from 'framer-motion'
 import { supabase } from '@/lib/supabase'
 import toast from 'react-hot-toast'
 import { Moon, Sun, Clock, Star, Plus, Trash2, Zap } from 'lucide-react'
@@ -128,12 +131,23 @@ export default function SleepPage() {
 
   const cardStyle = { background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '20px' }
 
+  const stagger: Variants = { hidden: {}, visible: { transition: { staggerChildren: 0.1, delayChildren: 0.05 } } }
+  const cardAnim: Variants = { hidden: { opacity: 0, y: 20, scale: 0.97 }, visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.45, ease: 'easeOut' } } }
+
   return (
     <DashboardLayout pageTitle="Sleep" title="Sleep Tracker">
-      <div className="max-w-2xl mx-auto space-y-5">
+      <PageHero
+        badge="Recovery"
+        badgeColor="#6366f1"
+        title="Sleep Tracker"
+        highlight="Sleep"
+        subtitle="Monitor your sleep quality and recovery patterns"
+        orbColors={['rgba(99,102,241,0.3)', 'rgba(139,92,246,0.2)']}
+      />
+      <motion.div className="max-w-2xl mx-auto space-y-5" initial="hidden" animate="visible" variants={stagger}>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-3">
+        <motion.div variants={cardAnim} className="grid grid-cols-3 gap-3">
           <div className="p-4 rounded-2xl text-center" style={{ background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.15)' }}>
             <Moon size={18} className="text-indigo-400 mx-auto mb-2" />
             <p className="text-2xl font-extrabold text-white">{avgDuration ?? '—'}</p>
@@ -154,11 +168,11 @@ export default function SleepPage() {
             </p>
             <p className="text-xs text-gray-500 mt-0.5">7-day status</p>
           </div>
-        </div>
+        </motion.div>
 
         {/* Weekly bar chart */}
         {entries.length > 0 && (
-          <div style={cardStyle} className="p-5">
+          <motion.div variants={cardAnim} style={cardStyle} className="p-5">
             <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">Last 7 Nights</p>
             <div className="flex items-end gap-2 h-20">
               {entries.slice(0, 7).reverse().map((entry, i) => {
@@ -184,11 +198,11 @@ export default function SleepPage() {
               })}
             </div>
             <p className="text-xs text-gray-600 mt-2 text-center">Bar height = hours slept · Color = quality</p>
-          </div>
+          </motion.div>
         )}
 
         {/* Log form */}
-        <div style={cardStyle} className="p-5">
+        <motion.div variants={cardAnim} style={cardStyle} className="p-5">
           <p className="font-bold text-white mb-4">Log Last Night&apos;s Sleep</p>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
@@ -251,10 +265,10 @@ export default function SleepPage() {
               <Moon size={15} /> Log Sleep
             </Button>
           </div>
-        </div>
+        </motion.div>
 
         {/* Sleep tip */}
-        <div className="p-4 rounded-2xl flex gap-3 items-start"
+        <motion.div variants={cardAnim} className="p-4 rounded-2xl flex gap-3 items-start"
           style={{ background: 'rgba(99,102,241,0.07)', border: '1px solid rgba(99,102,241,0.18)' }}>
           <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
             style={{ background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.25)' }}>
@@ -264,10 +278,10 @@ export default function SleepPage() {
             <p className="text-xs font-bold text-indigo-400 uppercase tracking-wider mb-1">Sleep Tip</p>
             <p className="text-sm text-gray-300">{tip}</p>
           </div>
-        </div>
+        </motion.div>
 
         {/* History */}
-        <div style={cardStyle} className="overflow-hidden">
+        <motion.div variants={cardAnim} style={cardStyle} className="overflow-hidden">
           <div className="px-5 py-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
             <p className="font-bold text-white">Sleep History</p>
           </div>
@@ -317,9 +331,9 @@ export default function SleepPage() {
               })}
             </div>
           )}
-        </div>
+        </motion.div>
 
-      </div>
+      </motion.div>
     </DashboardLayout>
   )
 }

@@ -1,9 +1,14 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import Head from 'next/head'
 import DashboardLayout from '@/components/layout/DashboardLayout'
+import PageHero from '@/components/ui/PageHero'
+import { motion } from 'framer-motion'
+import type { Variants } from 'framer-motion'
 import { supabase } from '@/lib/supabase'
 import toast from 'react-hot-toast'
 import { Send, Bot, User, Trash2, Sparkles, Zap, Brain, Leaf, Dumbbell, Heart } from 'lucide-react'
+import { usePlan } from '@/lib/usePlan'
+import PlanGate from '@/components/ui/PlanGate'
 
 type Message = {
   id: string
@@ -21,6 +26,9 @@ const SUGGESTED_PROMPTS = [
   { text: "Foods that reduce inflammation?", icon: <Sparkles size={13} /> },
 ]
 
+const stagger: Variants = { hidden: {}, visible: { transition: { staggerChildren: 0.1, delayChildren: 0.05 } } }
+const cardAnim: Variants = { hidden: { opacity: 0, y: 20, scale: 0.97 }, visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.45, ease: 'easeOut' } } }
+
 const WELCOME_MESSAGE: Message = {
   id: 'welcome',
   role: 'assistant',
@@ -35,6 +43,7 @@ export default function AIChatPage() {
   const [userId, setUserId] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const { plan, loading: planLoading } = usePlan()
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -134,10 +143,19 @@ export default function AIChatPage() {
   return (
     <DashboardLayout title="AI Nutritionist Chat">
       <Head><title>AI Nutritionist · FahmiFit</title></Head>
+      <PageHero
+        badge="AI Nutritionist"
+        badgeColor="#10b981"
+        title="AI Nutrition Coach"
+        highlight="Nutrition Coach"
+        subtitle="Ask anything about your diet, macros, or health goals"
+        orbColors={['rgba(16,185,129,0.3)', 'rgba(6,182,212,0.2)']}
+      />
 
-      <div className="max-w-3xl mx-auto flex flex-col" style={{ height: 'calc(100vh - 8rem)' }}>
+      <PlanGate requires="pro" currentPlan={plan} loading={planLoading} featureName="AI Nutritionist">
+      <motion.div className="max-w-3xl mx-auto flex flex-col" style={{ height: 'calc(100vh - 8rem)' }} initial="hidden" animate="visible" variants={stagger}>
         {/* Header */}
-        <div className="flex items-center justify-between mb-5">
+        <motion.div variants={cardAnim} className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-2xl flex items-center justify-center"
               style={{
@@ -164,10 +182,10 @@ export default function AIChatPage() {
           >
             <Trash2 size={14} /> Clear chat
           </button>
-        </div>
+        </motion.div>
 
         {/* Chat container */}
-        <div className="flex-1 flex flex-col overflow-hidden rounded-2xl"
+        <motion.div variants={cardAnim} className="flex-1 flex flex-col overflow-hidden rounded-2xl"
           style={{
             background: 'rgba(255,255,255,0.025)',
             border: '1px solid rgba(255,255,255,0.08)',
@@ -317,8 +335,9 @@ export default function AIChatPage() {
               Press Enter to send · Shift+Enter for new line
             </p>
           </div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
+      </PlanGate>
     </DashboardLayout>
   )
 }

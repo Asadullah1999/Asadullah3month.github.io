@@ -54,6 +54,7 @@ interface DashboardLayoutProps {
 export default function DashboardLayout({ children, title, pageTitle }: DashboardLayoutProps) {
   const router = useRouter()
   const [user, setUser] = useState<Partial<User> | null>(null)
+  const [plan, setPlan] = useState<string>('free')
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -77,6 +78,17 @@ export default function DashboardLayout({ children, title, pageTitle }: Dashboar
         }
         setUser(data)
       }
+
+      // Load plan
+      const { data: sub } = await supabase
+        .from('subscriptions')
+        .select('plan, status')
+        .eq('user_id', session.user.id)
+        .maybeSingle() as { data: { plan: string; status: string } | null; error: unknown }
+      if (sub && (sub.status === 'active' || sub.status === 'trialing')) {
+        setPlan(sub.plan || 'free')
+      }
+
       setLoading(false)
     }
 
@@ -113,10 +125,26 @@ export default function DashboardLayout({ children, title, pageTitle }: Dashboar
         <title>{pageTitle ? `${pageTitle} · FahmiFit` : 'FahmiFit'}</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
-      <div className="min-h-screen" style={{ background: '#05050f' }}>
-        <Sidebar isAdmin={isAdmin} user={user || undefined} />
+      <div className="min-h-screen relative" style={{ background: '#05050f' }}>
+        {/* Global ambient background */}
+        <div className="fixed inset-0 pointer-events-none z-0" aria-hidden="true">
+          {/* Top-right green orb */}
+          <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full opacity-[0.04]"
+            style={{ background: 'radial-gradient(circle, #10b981, transparent)', filter: 'blur(80px)', transform: 'translate(30%, -30%)' }} />
+          {/* Bottom-left violet orb */}
+          <div className="absolute bottom-0 left-60 w-[400px] h-[400px] rounded-full opacity-[0.04]"
+            style={{ background: 'radial-gradient(circle, #8b5cf6, transparent)', filter: 'blur(80px)', transform: 'translateY(30%)' }} />
+          {/* Subtle grid */}
+          <div className="absolute inset-0 opacity-[0.018]"
+            style={{
+              backgroundImage: 'linear-gradient(rgba(255,255,255,1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px)',
+              backgroundSize: '64px 64px',
+            }} />
+        </div>
+
+        <Sidebar isAdmin={isAdmin} user={user || undefined} plan={plan} />
         <Header title={title} isAdmin={isAdmin} />
-        <main className="lg:ml-60 pt-14 lg:pt-0 pb-20 lg:pb-0">
+        <main className="lg:ml-60 pt-14 lg:pt-0 pb-20 lg:pb-0 relative z-10">
           <div className="max-w-5xl mx-auto px-4 lg:px-8 py-6 lg:py-8 animate-fade-in">
             <ErrorBoundary>
               {children}

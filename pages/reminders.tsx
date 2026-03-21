@@ -3,6 +3,9 @@ import DashboardLayout from '@/components/layout/DashboardLayout'
 import Button from '@/components/ui/Button'
 import Input, { Select } from '@/components/ui/Input'
 import Badge from '@/components/ui/Badge'
+import PageHero from '@/components/ui/PageHero'
+import { motion } from 'framer-motion'
+import type { Variants } from 'framer-motion'
 import { supabase } from '@/lib/supabase'
 import { Reminder } from '@/lib/database.types'
 import { Bell, Plus, Trash2, Edit2, MessageCircle, Smartphone, Check } from 'lucide-react'
@@ -150,12 +153,23 @@ export default function RemindersPage() {
     padding: '20px',
   }
 
+  const stagger: Variants = { hidden: {}, visible: { transition: { staggerChildren: 0.1, delayChildren: 0.05 } } }
+  const cardAnim: Variants = { hidden: { opacity: 0, y: 20, scale: 0.97 }, visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.45, ease: 'easeOut' } } }
+
   return (
     <DashboardLayout pageTitle="Reminders" title="Reminders">
-      <div className="max-w-2xl mx-auto space-y-5">
+      <PageHero
+        badge="Notifications"
+        badgeColor="#f97316"
+        title="Smart Reminders"
+        highlight="Reminders"
+        subtitle="Set meal and hydration reminders for your routine"
+        orbColors={['rgba(249,115,22,0.3)', 'rgba(245,158,11,0.2)']}
+      />
+      <motion.div className="max-w-2xl mx-auto space-y-5" initial="hidden" animate="visible" variants={stagger}>
 
         {/* Header actions */}
-        <div className="flex items-center justify-between flex-wrap gap-3">
+        <motion.div variants={cardAnim} className="flex items-center justify-between flex-wrap gap-3">
           <p className="text-sm text-gray-500">Manage your meal, water, and check-in reminders.</p>
           <div className="flex gap-2">
             {reminders.length === 0 && (
@@ -167,11 +181,11 @@ export default function RemindersPage() {
               <Plus size={14} /> New reminder
             </Button>
           </div>
-        </div>
+        </motion.div>
 
         {/* Form */}
         {showForm && (
-          <div style={cardStyle}>
+          <motion.div variants={cardAnim} style={cardStyle}>
             <p className="font-bold text-white mb-5">{editing ? 'Edit reminder' : 'New reminder'}</p>
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -240,12 +254,12 @@ export default function RemindersPage() {
                 <Button variant="secondary" onClick={resetForm}>Cancel</Button>
               </div>
             </div>
-          </div>
+          </motion.div>
         )}
 
         {/* Reminder list */}
         {reminders.length === 0 && !showForm ? (
-          <div className="text-center py-16" style={cardStyle}>
+          <motion.div variants={cardAnim} className="text-center py-16" style={cardStyle}>
             <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4"
               style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
               <Bell size={24} className="text-gray-600" />
@@ -258,13 +272,13 @@ export default function RemindersPage() {
                 <Plus size={14} /> Custom
               </Button>
             </div>
-          </div>
+          </motion.div>
         ) : (
-          <div className="space-y-3">
+          <motion.div className="space-y-3" initial="hidden" animate="visible" variants={stagger}>
             {reminders.map(reminder => {
               const ts = TYPE_STYLES[reminder.type] || TYPE_STYLES.custom
               return (
-                <div
+                <motion.div variants={cardAnim}
                   key={reminder.id}
                   className="flex items-start gap-4 p-5 rounded-2xl transition-all duration-200"
                   style={{
@@ -330,12 +344,12 @@ export default function RemindersPage() {
                       <Trash2 size={14} />
                     </button>
                   </div>
-                </div>
+                </motion.div>
               )
             })}
-          </div>
+          </motion.div>
         )}
-      </div>
+      </motion.div>
     </DashboardLayout>
   )
 }

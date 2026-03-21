@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react'
 import DashboardLayout from '@/components/layout/DashboardLayout'
+import PageHero from '@/components/ui/PageHero'
+import { motion } from 'framer-motion'
+import type { Variants } from 'framer-motion'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Badge from '@/components/ui/Badge'
@@ -101,12 +104,23 @@ export default function WeightLogPage() {
 
   const cardStyle = { background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '20px' }
 
+  const stagger: Variants = { hidden: {}, visible: { transition: { staggerChildren: 0.1, delayChildren: 0.05 } } }
+  const cardAnim: Variants = { hidden: { opacity: 0, y: 20, scale: 0.97 }, visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.45, ease: 'easeOut' } } }
+
   return (
     <DashboardLayout pageTitle="Weight Log" title="Weight Tracker">
-      <div className="max-w-2xl mx-auto space-y-5">
+      <PageHero
+        badge="Body Stats"
+        badgeColor="#06b6d4"
+        title="Weight Log"
+        highlight="Weight"
+        subtitle="Track your body weight journey over time"
+        orbColors={['rgba(6,182,212,0.3)', 'rgba(16,185,129,0.2)']}
+      />
+      <motion.div className="max-w-2xl mx-auto space-y-5" initial="hidden" animate="visible" variants={stagger}>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-3">
+        <motion.div variants={cardAnim} className="grid grid-cols-3 gap-3">
           <div className="p-4 rounded-2xl text-center" style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.15)' }}>
             <Scale size={18} className="text-brand-400 mx-auto mb-2" />
             <p className="text-2xl font-extrabold text-white">{latestWeight ?? '—'}</p>
@@ -139,11 +153,11 @@ export default function WeightLogPage() {
             <p className="text-2xl font-extrabold" style={{ color: bmiInfo?.color ?? '#6b7280' }}>{bmi ?? '—'}</p>
             <p className="text-xs text-gray-500 mt-0.5">{bmiInfo?.label ?? 'BMI'}</p>
           </div>
-        </div>
+        </motion.div>
 
         {/* Mini sparkline chart */}
         {last30.length > 1 && (
-          <div style={cardStyle} className="p-5">
+          <motion.div variants={cardAnim} style={cardStyle} className="p-5">
             <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">Weight Trend (last {last30.length} entries)</p>
             <div className="flex items-end gap-1 h-20">
               {last30.map((entry, i) => {
@@ -177,11 +191,11 @@ export default function WeightLogPage() {
               <span className="text-brand-400 font-bold">Min: {minW}kg  Max: {maxW}kg</span>
               <span>{format(new Date(last30[last30.length - 1].logged_at), 'MMM d')}</span>
             </div>
-          </div>
+          </motion.div>
         )}
 
         {/* Log new entry */}
-        <div style={cardStyle} className="p-5">
+        <motion.div variants={cardAnim} style={cardStyle} className="p-5">
           <p className="font-bold text-white mb-4">Log Today&apos;s Weight</p>
           <div className="flex gap-3 items-end">
             <div className="flex-1">
@@ -208,10 +222,10 @@ export default function WeightLogPage() {
               <Plus size={15} /> Log
             </Button>
           </div>
-        </div>
+        </motion.div>
 
         {/* History */}
-        <div style={cardStyle} className="overflow-hidden">
+        <motion.div variants={cardAnim} style={cardStyle} className="overflow-hidden">
           <div className="px-5 py-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
             <p className="font-bold text-white">History</p>
           </div>
@@ -264,9 +278,9 @@ export default function WeightLogPage() {
               })}
             </div>
           )}
-        </div>
+        </motion.div>
 
-      </div>
+      </motion.div>
     </DashboardLayout>
   )
 }
