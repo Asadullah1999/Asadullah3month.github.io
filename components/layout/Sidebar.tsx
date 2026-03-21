@@ -6,7 +6,7 @@ import { sounds } from '@/lib/sounds'
 import {
   LayoutDashboard, User, MessageCircle, ClipboardList,
   TrendingUp, Settings, LogOut, Bell, ShieldCheck,
-  Bot, ShoppingCart, Zap, Dumbbell, Scale, Moon, Crown, MessagesSquare,
+  Bot, ShoppingCart, Zap, Dumbbell, Scale, Moon, Crown, MessagesSquare, Watch,
 } from 'lucide-react'
 
 const NAV = [
@@ -19,9 +19,10 @@ const NAV = [
 ]
 
 const HEALTH_NAV = [
-  { href: '/workout',    icon: Dumbbell, label: 'Workout',    color: '#ef4444' },
-  { href: '/weight-log', icon: Scale,    label: 'Weight Log', color: '#06b6d4' },
-  { href: '/sleep',      icon: Moon,     label: 'Sleep',      color: '#6366f1' },
+  { href: '/workout',      icon: Dumbbell, label: 'Workout',      color: '#ef4444' },
+  { href: '/weight-log',   icon: Scale,    label: 'Weight Log',   color: '#06b6d4' },
+  { href: '/sleep',        icon: Moon,     label: 'Sleep',        color: '#6366f1' },
+  { href: '/watch-health', icon: Watch,    label: 'Watch Health', color: '#10b981' },
 ]
 
 const AI_NAV = [
