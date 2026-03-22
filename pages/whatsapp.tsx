@@ -19,10 +19,14 @@ import PlanGate from '@/components/ui/PlanGate'
 
 const WA_PHONE = process.env.NEXT_PUBLIC_WA_BUSINESS_PHONE || '14155238886'
 
+const SANDBOX_NUMBER = '+14155238886'
+const SANDBOX_CODE = 'join grandmother-likely'
+const SANDBOX_LINK = `https://wa.me/14155238886?text=${encodeURIComponent('join grandmother-likely')}`
+
 const HOW_IT_WORKS = [
-  { step: '01', title: 'Enter your WhatsApp number', desc: 'We save your number and generate a verification link.', icon: <Phone size={16} /> },
-  { step: '02', title: 'Tap the WhatsApp button', desc: 'Send the pre-filled verification message to our WhatsApp.', icon: <Send size={16} /> },
-  { step: '03', title: 'You\'re connected!', desc: 'Text meals, send food photos, get reminders — all via WhatsApp.', icon: <Zap size={16} /> },
+  { step: '01', title: 'Join our WhatsApp', desc: 'Tap the button below to send "join grandmother-likely" to our number. Required once.', icon: <MessageCircle size={16} /> },
+  { step: '02', title: 'Enter your number & connect', desc: 'Enter your WhatsApp number and tap Connect — we\'ll send a verification link.', icon: <Phone size={16} /> },
+  { step: '03', title: 'Verify & you\'re done!', desc: 'Send the pre-filled message — your account auto-connects instantly.', icon: <Zap size={16} /> },
 ]
 
 const FEATURES = [
@@ -170,6 +174,43 @@ export default function WhatsAppPage() {
       />
       <PlanGate requires="pro" currentPlan={plan} loading={planLoading} featureName="WhatsApp Reminders">
       <motion.div className="max-w-2xl mx-auto space-y-5" initial="hidden" animate="visible" variants={stagger}>
+
+        {/* Step 1: Join sandbox banner */}
+        <motion.div variants={cardAnim} className="rounded-2xl p-5"
+          style={{
+            background: 'linear-gradient(135deg, rgba(37,211,102,0.08), rgba(16,185,129,0.05))',
+            border: '1px solid rgba(37,211,102,0.25)',
+          }}>
+          <div className="flex items-start gap-3 mb-4">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 font-black text-sm"
+              style={{ background: 'rgba(37,211,102,0.2)', border: '1px solid rgba(37,211,102,0.35)', color: '#25D366' }}>
+              1
+            </div>
+            <div>
+              <p className="font-bold text-white text-sm">First: Join our WhatsApp</p>
+              <p className="text-xs text-gray-400 mt-0.5">
+                Before connecting, you must join our WhatsApp sandbox once. Tap the button and send the message.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 p-3 rounded-xl mb-3"
+            style={{ background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.06)' }}>
+            <div className="flex-1">
+              <p className="text-xs text-gray-500 mb-0.5">Send this to <span className="text-white font-mono">{SANDBOX_NUMBER}</span></p>
+              <p className="font-mono font-bold text-green-400 text-sm">{SANDBOX_CODE}</p>
+            </div>
+          </div>
+          <a href={SANDBOX_LINK} target="_blank" rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-white text-sm transition-all duration-200"
+            style={{
+              background: 'linear-gradient(135deg, #25D366, #128C7E)',
+              boxShadow: '0 4px 16px rgba(37,211,102,0.3)',
+            }}>
+            <ExternalLink size={15} />
+            Tap to Join on WhatsApp
+          </a>
+          <p className="text-xs text-gray-600 text-center mt-2">Only required once. Sandbox membership lasts 72 hours.</p>
+        </motion.div>
 
         {/* Connected banner */}
         {step === 'connected' && (
