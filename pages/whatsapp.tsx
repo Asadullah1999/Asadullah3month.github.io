@@ -1,9 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import DashboardLayout from '@/components/layout/DashboardLayout'
 import PageHero from '@/components/ui/PageHero'
 import { motion } from 'framer-motion'
 import type { Variants } from 'framer-motion'
-import { CardTitle } from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Badge from '@/components/ui/Badge'
@@ -11,17 +10,27 @@ import { supabase } from '@/lib/supabase'
 import { WhatsAppContact } from '@/lib/database.types'
 import {
   MessageCircle, Phone, Shield, CheckCircle2,
-  RefreshCw, Info, Bell, Zap, ChevronRight, Smartphone,
-  Wifi, Clock,
+  Info, Bell, Zap, ChevronRight, Smartphone,
+  Wifi, Clock, ExternalLink, Send,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { usePlan } from '@/lib/usePlan'
 import PlanGate from '@/components/ui/PlanGate'
 
+const WA_PHONE = process.env.NEXT_PUBLIC_WA_BUSINESS_PHONE || '14155238886'
+
 const HOW_IT_WORKS = [
-  { step: '01', title: 'Enter your WhatsApp number', desc: 'We send you a verification code via WhatsApp.', icon: <Phone size={16} /> },
-  { step: '02', title: 'Verify your number', desc: 'Enter the 6-digit code to confirm your identity.', icon: <Shield size={16} /> },
-  { step: '03', title: 'Receive daily reminders', desc: 'Meal check-ins, water reminders, and weekly summaries — all via WhatsApp.', icon: <Bell size={16} /> },
+  { step: '01', title: 'Enter your WhatsApp number', desc: 'We save your number and generate a verification link.', icon: <Phone size={16} /> },
+  { step: '02', title: 'Tap the WhatsApp button', desc: 'Send the pre-filled verification message to our WhatsApp.', icon: <Send size={16} /> },
+  { step: '03', title: 'You\'re connected!', desc: 'Text meals, send food photos, get reminders — all via WhatsApp.', icon: <Zap size={16} /> },
+]
+
+const FEATURES = [
+  { emoji: '📝', title: 'Log meals by text', desc: 'Just type "2 roti and dal for lunch" — AI parses it instantly' },
+  { emoji: '📸', title: 'Send food photos', desc: 'Snap a photo of your plate — AI identifies and logs it' },
+  { emoji: '💧', title: 'Track water', desc: 'Type "water 500" to log 500ml — updates your dashboard' },
+  { emoji: '📊', title: 'Check status', desc: 'Type "status" for today\'s calories, macros, and water progress' },
+  { emoji: '🔔', title: 'Smart reminders', desc: 'Personalized meal and water reminders at your preferred times' },
 ]
 
 const REMINDER_EXAMPLES = [
@@ -35,55 +44,101 @@ const REMINDER_EXAMPLES = [
 export default function WhatsAppPage() {
   const [contact, setContact] = useState<Partial<WhatsAppContact> | null>(null)
   const [phone, setPhone] = useState('')
-  const [code, setCode] = useState('')
-  const [step, setStep] = useState<'enter' | 'verify' | 'connected'>('enter')
+  const [step, setStep] = useState<'enter' | 'pending' | 'connected'>('enter')
   const [loading, setLoading] = useState(false)
-  const [sending, setSending] = useState(false)
+  const [verifyToken, setVerifyToken] = useState<string | null>(null)
   const { plan, loading: planLoading } = usePlan()
 
-  useEffect(() => { loadContact() }, [])
-
-  async function loadContact() {
+  const loadContact = useCallback(async () => {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) return
     const { data } = await supabase.from('whatsapp_contacts').select('*').eq('user_id', session.user.id).maybeSingle()
     if (data) {
       setContact(data)
       setPhone(data.phone_number || '')
-      setStep(data.is_verified ? 'connected' : 'verify')
+      if (data.is_verified) {
+        setStep('connected')
+      } else {
+        setVerifyToken(data.verification_code || null)
+        setStep('pending')
+      }
     }
-  }
+  }, [])
 
-  async function sendVerification() {
-    if (!phone || phone.length < 8) { toast.error('Please enter a valid phone number with country code'); return }
-    setSending(true)
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session) { setSending(false); return }
-    const res = await fetch('/api/whatsapp/send-verification', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId: session.user.id, phone }),
-    })
-    const data = await res.json()
-    if (!res.ok) { toast.error(data.error || 'Failed to send code'); setSending(false); return }
-    toast.success('Verification code sent! Check your WhatsApp.')
-    setStep('verify')
-    setSending(false)
-  }
+  useEffect(() => { loadContact() }, [loadContact])
 
-  async function verifyCode() {
-    if (!code || code.length !== 6) { toast.error('Enter the 6-digit code from WhatsApp'); return }
+  // Real-time subscription: auto-detect when webhook verifies the user
+  useEffect(() => {
+    if (step !== 'pending') return
+
+    let cancelled = false
+
+    async function subscribe() {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session || cancelled) return
+
+      const channel = supabase
+        .channel('wa-verify')
+        .on('postgres_changes', {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'whatsapp_contacts',
+          filter: `user_id=eq.${session.user.id}`,
+        }, (payload) => {
+          const updated = payload.new as Record<string, unknown>
+          if (updated.is_verified) {
+            toast.success('WhatsApp connected successfully!')
+            setStep('connected')
+            setContact(prev => ({ ...prev, is_verified: true }))
+          }
+        })
+        .subscribe()
+
+      return () => { supabase.removeChannel(channel) }
+    }
+
+    const cleanup = subscribe()
+    return () => {
+      cancelled = true
+      cleanup.then(fn => fn?.())
+    }
+  }, [step])
+
+  async function connectWhatsApp() {
+    if (!phone || phone.length < 8) {
+      toast.error('Please enter a valid phone number with country code')
+      return
+    }
     setLoading(true)
+
     const { data: { session } } = await supabase.auth.getSession()
-    if (!session) return
-    const { data: contactData } = await supabase.from('whatsapp_contacts').select('verification_code').eq('user_id', session.user.id).single()
-    if (!contactData || contactData.verification_code !== code) { toast.error('Invalid code. Please try again.'); setLoading(false); return }
-    const { error } = await supabase.from('whatsapp_contacts').update({ is_verified: true, verification_code: null, verified_at: new Date().toISOString() }).eq('user_id', session.user.id)
-    if (error) { toast.error(error.message); setLoading(false); return }
-    toast.success('WhatsApp connected successfully!')
-    setStep('connected')
-    loadContact()
+    if (!session) { setLoading(false); return }
+
+    // Generate a verification token
+    const token = crypto.randomUUID().split('-')[0].toUpperCase()
+
+    // Normalize phone
+    const cleanPhone = phone.startsWith('+') ? phone : `+${phone}`
+
+    // Upsert to whatsapp_contacts
+    const { error } = await supabase.from('whatsapp_contacts').upsert({
+      user_id: session.user.id,
+      phone_number: cleanPhone,
+      is_verified: false,
+      verification_code: token,
+      opt_in: false,
+    }, { onConflict: 'user_id' })
+
+    if (error) {
+      toast.error(error.message)
+      setLoading(false)
+      return
+    }
+
+    setVerifyToken(token)
+    setStep('pending')
     setLoading(false)
+    toast.success('Now tap the WhatsApp button to verify!')
   }
 
   async function disconnect() {
@@ -93,8 +148,12 @@ export default function WhatsAppPage() {
     toast.success('WhatsApp disconnected')
     setStep('enter')
     setContact(null)
-    setCode('')
+    setVerifyToken(null)
   }
+
+  const waLink = verifyToken
+    ? `https://wa.me/${WA_PHONE}?text=${encodeURIComponent(`VERIFY ${verifyToken}`)}`
+    : '#'
 
   const stagger: Variants = { hidden: {}, visible: { transition: { staggerChildren: 0.1, delayChildren: 0.05 } } }
   const cardAnim: Variants = { hidden: { opacity: 0, y: 20, scale: 0.97 }, visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.45, ease: 'easeOut' } } }
@@ -106,7 +165,7 @@ export default function WhatsAppPage() {
         badgeColor="#25D366"
         title="WhatsApp Connect"
         highlight="WhatsApp"
-        subtitle="Connect for daily meal reminders and nutrition tips"
+        subtitle="Log meals, get reminders, and track nutrition — all via WhatsApp"
         orbColors={['rgba(37,211,102,0.3)', 'rgba(16,185,129,0.2)']}
       />
       <PlanGate requires="pro" currentPlan={plan} loading={planLoading} featureName="WhatsApp Reminders">
@@ -158,7 +217,7 @@ export default function WhatsAppPage() {
               </div>
               <div>
                 <h2 className="text-xl font-extrabold text-white">Connect WhatsApp</h2>
-                <p className="text-sm text-gray-400 mt-0.5">Get reminders and check-in via WhatsApp</p>
+                <p className="text-sm text-gray-400 mt-0.5">Log meals, track water, get reminders via WhatsApp</p>
               </div>
             </div>
           </div>
@@ -175,42 +234,48 @@ export default function WhatsAppPage() {
                   leftIcon={<Phone size={16} />}
                   hint="Include country code (e.g. +92 for Pakistan, +1 for USA)"
                 />
-                <Button onClick={sendVerification} loading={sending} fullWidth size="lg">
+                <Button onClick={connectWhatsApp} loading={loading} fullWidth size="lg">
                   <MessageCircle size={16} />
-                  Send verification code
+                  Connect WhatsApp
                 </Button>
               </div>
             )}
 
-            {step === 'verify' && (
+            {step === 'pending' && (
               <div className="space-y-4">
                 <div className="flex gap-3 p-4 rounded-xl"
-                  style={{ background: 'rgba(6,182,212,0.08)', border: '1px solid rgba(6,182,212,0.2)' }}>
-                  <Info size={16} className="text-cyan-400 flex-shrink-0 mt-0.5" />
-                  <p className="text-sm text-cyan-300">
-                    We sent a 6-digit code to <strong className="text-white">{phone}</strong> via WhatsApp. Enter it below.
+                  style={{ background: 'rgba(37,211,102,0.08)', border: '1px solid rgba(37,211,102,0.2)' }}>
+                  <Info size={16} className="text-green-400 flex-shrink-0 mt-0.5" />
+                  <p className="text-sm text-green-300">
+                    Tap the button below to send a verification message to our WhatsApp.
+                    Your page will <strong className="text-white">auto-update</strong> once verified.
                   </p>
                 </div>
-                <Input
-                  label="Verification code"
-                  type="text"
-                  value={code}
-                  onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                  placeholder="123456"
-                  maxLength={6}
-                  hint="6-digit code from WhatsApp"
-                />
-                <div className="flex gap-3">
-                  <Button onClick={verifyCode} loading={loading} fullWidth>
-                    <Shield size={16} /> Verify number
-                  </Button>
-                  <Button variant="secondary" onClick={() => { setStep('enter'); setCode('') }}>
-                    Change
-                  </Button>
+
+                <a href={waLink} target="_blank" rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl font-bold text-white text-base transition-all duration-200"
+                  style={{
+                    background: 'linear-gradient(135deg, #25D366, #128C7E)',
+                    boxShadow: '0 8px 24px rgba(37,211,102,0.4)',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 12px 32px rgba(37,211,102,0.5)' }}
+                  onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 8px 24px rgba(37,211,102,0.4)' }}>
+                  <ExternalLink size={16} />
+                  Open WhatsApp to Verify
+                </a>
+
+                <div className="flex gap-3 p-3 rounded-xl"
+                  style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                  <Shield size={14} className="text-gray-500 flex-shrink-0 mt-0.5" />
+                  <p className="text-xs text-gray-500">
+                    Your verification code: <span className="font-mono font-bold text-gray-400">VERIFY {verifyToken}</span>
+                    <br />This page will auto-connect once you send it.
+                  </p>
                 </div>
-                <button onClick={sendVerification}
+
+                <button onClick={() => { setStep('enter'); setVerifyToken(null) }}
                   className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-brand-400 transition-colors mx-auto">
-                  <RefreshCw size={13} /> Resend code
+                  <Phone size={13} /> Change number
                 </button>
               </div>
             )}
@@ -239,6 +304,26 @@ export default function WhatsAppPage() {
                 </div>
               </div>
             )}
+          </div>
+        </motion.div>
+
+        {/* Features */}
+        <motion.div variants={cardAnim} className="rounded-2xl p-6"
+          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
+          <h3 className="text-base font-bold text-white mb-5 flex items-center gap-2">
+            <Zap size={16} className="text-brand-400" /> What you can do
+          </h3>
+          <div className="space-y-3">
+            {FEATURES.map((f, i) => (
+              <div key={i} className="flex gap-3 items-start p-3 rounded-xl transition-all duration-200"
+                style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)' }}>
+                <span className="text-xl flex-shrink-0">{f.emoji}</span>
+                <div>
+                  <p className="text-sm font-semibold text-white">{f.title}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{f.desc}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </motion.div>
 
