@@ -6,7 +6,7 @@ import { sounds } from '@/lib/sounds'
 import {
   LayoutDashboard, User, MessageCircle, ClipboardList,
   TrendingUp, Settings, LogOut, Bell, ShieldCheck,
-  Bot, ShoppingCart, Zap, Dumbbell, Scale, Moon, Crown, MessagesSquare, Watch,
+  Bot, ShoppingCart, Zap, Dumbbell, Scale, Moon, Crown, MessagesSquare, Watch, Utensils,
 } from 'lucide-react'
 
 const NAV = [
@@ -27,7 +27,8 @@ const HEALTH_NAV = [
 
 const AI_NAV = [
   { href: '/ai-chat',      icon: Bot,          label: 'AI Nutritionist', color: '#10b981' },
-  { href: '/grocery-list', icon: ShoppingCart, label: 'Grocery List',    color: '#f59e0b' },
+  { href: '/diet-plan',    icon: Utensils,     label: 'Diet Plan',       color: '#f59e0b' },
+  { href: '/grocery-list', icon: ShoppingCart,  label: 'Grocery List',    color: '#f97316' },
 ]
 
 interface SidebarProps {

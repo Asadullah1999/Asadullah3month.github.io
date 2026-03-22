@@ -2,7 +2,7 @@ export type BotOption = {
   label: string
   emoji?: string
   nextId: string
-  action?: 'navigate' | 'ticket' | 'back'
+  action?: 'navigate' | 'ticket' | 'back' | 'ai-prompt'
   href?: string
 }
 
@@ -20,6 +20,8 @@ export type ChatMessage = {
   timestamp: Date
   options?: BotOption[]
   link?: { label: string; href: string }
+  isAI?: boolean
+  isStreaming?: boolean
 }
 
 const nodes: Record<string, BotNode> = {
@@ -97,4 +99,70 @@ export function getNode(id: string): BotNode {
 
 export function getRootNode(): BotNode {
   return nodes['root']
+}
+
+export function getSmartSuggestions(
+  page: string,
+  hour: number,
+  calories: number,
+  target: number
+): BotOption[] {
+  const suggestions: BotOption[] = []
+
+  // Time-based
+  if (hour >= 5 && hour < 11) {
+    suggestions.push({ label: 'Log breakfast', emoji: '🌅', nextId: 'meal', action: 'navigate', href: '/checkin' })
+  } else if (hour >= 11 && hour < 15) {
+    suggestions.push({ label: 'Log lunch', emoji: '☀️', nextId: 'meal', action: 'navigate', href: '/checkin' })
+  } else if (hour >= 17 && hour < 22) {
+    suggestions.push({ label: 'Log dinner', emoji: '🌙', nextId: 'meal', action: 'navigate', href: '/checkin' })
+  }
+
+  // Data-based
+  if (calories === 0) {
+    suggestions.push({ label: 'Log your first meal', emoji: '🍽️', nextId: 'meal', action: 'navigate', href: '/checkin' })
+  } else if (calories > 0 && calories < target * 0.5) {
+    suggestions.push({ label: 'How am I doing today?', emoji: '📊', nextId: 'ai_today', action: 'ai-prompt' })
+  }
+
+  // Page-based
+  if (page === '/progress' || page === '/dashboard') {
+    suggestions.push({ label: 'Ask about my trends', emoji: '📈', nextId: 'ai_trends', action: 'ai-prompt' })
+  }
+  if (page === '/workout') {
+    suggestions.push({ label: 'Post-workout snack ideas', emoji: '💪', nextId: 'ai_workout', action: 'ai-prompt' })
+  }
+
+  // Always include
+  suggestions.push({ label: 'Meal suggestions', emoji: '🥗', nextId: 'ai_meals', action: 'ai-prompt' })
+
+  return suggestions.slice(0, 5)
+}
+
+const AI_PROMPT_MAP: Record<string, string> = {
+  ai_today: 'How am I doing today with my calories and nutrition?',
+  ai_trends: 'What trends do you see in my recent nutrition data?',
+  ai_workout: 'What should I eat after a workout?',
+  ai_meals: 'Suggest meals that fit my diet and calorie goals.',
+}
+
+export function getAIPrompt(nextId: string): string {
+  return AI_PROMPT_MAP[nextId] || 'Tell me about my nutrition.'
+}
+
+export function getProactiveGreeting(
+  name: string,
+  calories: number,
+  target: number,
+  hour: number
+): string {
+  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
+  if (calories > 0) {
+    const remaining = target - calories
+    if (remaining <= 0) {
+      return `${greeting}, ${name}! You've hit your ${target} kcal target today. Great job!`
+    }
+    return `${greeting}, ${name}! You're at ${calories}/${target} kcal today — ${remaining} left.`
+  }
+  return `${greeting}, ${name}! Ready to start tracking today?`
 }
