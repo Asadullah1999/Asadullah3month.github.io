@@ -8,6 +8,7 @@
 
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { createClient } from '@supabase/supabase-js'
+import { getProvider } from '@/lib/whatsapp/provider'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -23,8 +24,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   let targetPhone: string | null = phone || null
 
   if (!targetPhone && userId) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const db: any = createClient(
+    const db = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
@@ -48,30 +48,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const cleanPhone = (targetPhone as string).replace('+', '')
 
   try {
-    const response = await fetch(
-      `https://graph.facebook.com/v20.0/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`,
-      {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.WHATSAPP_ACCESS_TOKEN}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          messaging_product: 'whatsapp',
-          to: cleanPhone,
-          type: 'text',
-          text: { preview_url: false, body: message },
-        }),
-      }
-    )
+    const provider = getProvider()
+    const result = await provider.sendText(cleanPhone, message)
 
-    const data = await response.json()
-
-    if (!response.ok) {
-      return res.status(response.status).json({ error: data.error?.message || 'Failed to send message' })
+    if (!result.success) {
+      return res.status(400).json({ error: result.error || 'Failed to send message' })
     }
 
-    return res.status(200).json({ success: true, messageId: data.messages?.[0]?.id })
+    return res.status(200).json({ success: true, messageId: result.messageId })
   } catch {
     return res.status(500).json({ error: 'Failed to send WhatsApp message' })
   }

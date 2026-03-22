@@ -42,6 +42,34 @@ export default function DashboardPage() {
 
   useEffect(() => { loadData() }, [])
 
+  // Real-time subscription: auto-update when WhatsApp logs a meal
+  useEffect(() => {
+    let channel: ReturnType<typeof supabase.channel> | null = null
+
+    async function setupRealtime() {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) return
+
+      channel = supabase
+        .channel('dashboard-realtime')
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'daily_logs',
+          filter: `user_id=eq.${session.user.id}`,
+        }, (payload) => {
+          const newRow = payload.new as Record<string, unknown>
+          if (newRow.log_date === todayISO()) {
+            setTodayLog(newRow as Partial<DailyLog>)
+          }
+        })
+        .subscribe()
+    }
+
+    setupRealtime()
+    return () => { if (channel) supabase.removeChannel(channel) }
+  }, [])
+
   async function loadData() {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) return
