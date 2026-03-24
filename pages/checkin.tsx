@@ -295,10 +295,10 @@ export default function CheckinPage() {
           style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
           <div className="flex items-center justify-between mb-4">
             <div>
-              <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold mb-1">Total consumed</p>
+              <p className="text-xs text-gray-400 uppercase tracking-wider font-semibold mb-1">Total consumed</p>
               <p className="text-3xl font-extrabold text-white">
                 {totals.calories}
-                <span className="text-lg font-medium text-gray-500 ml-2">/ {calorieTarget} kcal</span>
+                <span className="text-lg font-medium text-gray-300 ml-2">/ {calorieTarget} kcal</span>
               </p>
             </div>
             <div className="flex gap-5">
@@ -309,7 +309,7 @@ export default function CheckinPage() {
               ].map(m => (
                 <div key={m.label} className="text-center">
                   <p className="text-base font-extrabold" style={{ color: m.color }}>{m.value}g</p>
-                  <p className="text-xs text-gray-600">{m.label}</p>
+                  <p className="text-xs text-gray-400">{m.label}</p>
                 </div>
               ))}
             </div>
@@ -323,7 +323,7 @@ export default function CheckinPage() {
               }} />
           </div>
           <div className="flex justify-between mt-1.5">
-            <p className="text-xs text-gray-600">{caloriePct}% of daily goal</p>
+            <p className="text-xs text-gray-400">{caloriePct}% of daily goal</p>
             <p className="text-xs" style={{ color: calorieTarget - totals.calories > 0 ? '#6ee7b7' : '#f87171' }}>
               {calorieTarget - totals.calories > 0 ? `${calorieTarget - totals.calories} kcal remaining` : `${totals.calories - calorieTarget} kcal over`}
             </p>
