@@ -83,7 +83,7 @@ export function StatCard({
   return (
     <div className="stat-card">
       <div className="flex items-start justify-between mb-3">
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{title}</p>
+        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{title}</p>
         <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white flex-shrink-0"
           style={{
             background: grad.bg,
@@ -94,9 +94,9 @@ export function StatCard({
       </div>
       <p className="text-3xl font-extrabold text-white tracking-tight">
         {value}
-        {unit && <span className="text-lg font-semibold text-gray-500 ml-1">{unit}</span>}
+        {unit && <span className="text-lg font-semibold text-gray-300 ml-1">{unit}</span>}
       </p>
-      {sub && <p className="text-xs text-gray-600 mt-1.5">{sub}</p>}
+      {sub && <p className="text-xs text-gray-400 mt-1.5">{sub}</p>}
     </div>
   )
 }
