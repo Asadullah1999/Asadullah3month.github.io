@@ -51,8 +51,11 @@ export async function saveMealToLog(
     snacks: (existing?.snacks as MealItem[] | null) || [],
   }
 
+  // Filter out junk items (0 calories, empty names) before appending
+  const validFoods = foods.filter(f => f.calories > 0 && f.name && f.name.trim().length > 0)
+
   // Append new foods to the correct category
-  currentMeals[category] = [...currentMeals[category], ...foods]
+  currentMeals[category] = [...currentMeals[category], ...validFoods]
 
   // Recalculate totals across all meals
   const allFoods = [
@@ -85,6 +88,6 @@ export async function saveMealToLog(
 
   await db.from('daily_logs').upsert(row, { onConflict: 'user_id,log_date' })
 
-  const addedCalories = foods.reduce((s, f) => s + (f.calories || 0), 0)
+  const addedCalories = validFoods.reduce((s, f) => s + (f.calories || 0), 0)
   return { mealCategory: category, totalCalories: addedCalories }
 }
