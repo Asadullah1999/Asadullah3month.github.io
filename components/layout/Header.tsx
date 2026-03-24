@@ -7,7 +7,7 @@ import { sounds } from '@/lib/sounds'
 import {
   Menu, X, LayoutDashboard, User, MessageCircle, ClipboardList,
   TrendingUp, Bell, LogOut, ShieldCheck, Zap, Bot, ShoppingCart,
-  Dumbbell, Scale, Moon,
+  Dumbbell, Scale, Moon, Watch, Utensils, Settings, Crown,
 } from 'lucide-react'
 
 const NAV = [
@@ -17,11 +17,19 @@ const NAV = [
   { href: '/whatsapp',     icon: MessageCircle,   label: 'WhatsApp' },
   { href: '/reminders',    icon: Bell,            label: 'Reminders' },
   { href: '/profile',      icon: User,            label: 'Profile' },
-  { href: '/workout',      icon: Dumbbell,        label: 'Workout' },
-  { href: '/weight-log',   icon: Scale,           label: 'Weight Log' },
-  { href: '/sleep',        icon: Moon,            label: 'Sleep' },
-  { href: '/ai-chat',      icon: Bot,             label: 'AI Nutritionist' },
-  { href: '/grocery-list', icon: ShoppingCart,    label: 'Grocery List' },
+]
+
+const HEALTH_NAV = [
+  { href: '/workout',      icon: Dumbbell, label: 'Workout' },
+  { href: '/weight-log',   icon: Scale,    label: 'Weight Log' },
+  { href: '/sleep',        icon: Moon,     label: 'Sleep' },
+  { href: '/watch-health', icon: Watch,    label: 'Watch Health' },
+]
+
+const AI_NAV = [
+  { href: '/ai-chat',      icon: Bot,          label: 'AI Nutritionist' },
+  { href: '/diet-plan',    icon: Utensils,     label: 'Diet Plan' },
+  { href: '/grocery-list', icon: ShoppingCart, label: 'Grocery List' },
 ]
 
 // 5 key tabs for bottom nav
@@ -105,39 +113,70 @@ export default function Header({ title, isAdmin }: { title?: string; isAdmin?: b
               {NAV.map(({ href, icon: Icon, label }) => {
                 const active = router.pathname === href
                 return (
-                  <Link
-                    key={href}
-                    href={href}
-                    onClick={() => { sounds.nav(); setOpen(false) }}
-                    className={cn(
-                      'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200',
-                      active ? 'nav-link-active' : 'nav-link'
-                    )}
-                  >
+                  <Link key={href} href={href} onClick={() => { sounds.nav(); setOpen(false) }}
+                    className={cn('flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200', active ? 'nav-link-active' : 'nav-link')}>
                     <Icon size={16} className={active ? 'text-brand-400' : 'text-gray-600'} />
                     {label}
                   </Link>
                 )
               })}
+
+              {/* Health section */}
+              <div className="pt-3 pb-1 px-2">
+                <div className="h-px mb-2" style={{ background: 'linear-gradient(90deg, rgba(239,68,68,0.4), transparent)' }} />
+                <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: '#ef444460' }}>Health</p>
+              </div>
+              {HEALTH_NAV.map(({ href, icon: Icon, label }) => {
+                const active = router.pathname === href
+                return (
+                  <Link key={href} href={href} onClick={() => { sounds.nav(); setOpen(false) }}
+                    className={cn('flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200', active ? 'nav-link-active' : 'nav-link')}>
+                    <Icon size={16} className={active ? 'text-brand-400' : 'text-gray-600'} />
+                    {label}
+                  </Link>
+                )
+              })}
+
+              {/* AI Features section */}
+              <div className="pt-3 pb-1 px-2">
+                <div className="h-px mb-2" style={{ background: 'linear-gradient(90deg, rgba(16,185,129,0.5), transparent)' }} />
+                <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: '#10b98160' }}>AI Features</p>
+              </div>
+              {AI_NAV.map(({ href, icon: Icon, label }) => {
+                const active = router.pathname === href
+                return (
+                  <Link key={href} href={href} onClick={() => { sounds.nav(); setOpen(false) }}
+                    className={cn('flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200', active ? 'nav-link-active' : 'nav-link')}>
+                    <Icon size={16} className={active ? 'text-brand-400' : 'text-gray-600'} />
+                    {label}
+                  </Link>
+                )
+              })}
+
               {isAdmin && (
-                <Link
-                  href="/admin"
-                  onClick={() => { sounds.nav(); setOpen(false) }}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium nav-link"
-                >
+                <Link href="/admin" onClick={() => { sounds.nav(); setOpen(false) }}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium nav-link">
                   <ShieldCheck size={16} className="text-gray-600" />
                   Admin Panel
                 </Link>
               )}
             </div>
-            <div className="p-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-              <button
-                onClick={handleSignOut}
+            <div className="p-3 space-y-0.5" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+              <Link href="/pricing" onClick={() => { sounds.click(); setOpen(false) }}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-500 hover:text-amber-400 transition-all duration-200">
+                <Crown size={16} className="text-gray-600" />
+                My Plan
+              </Link>
+              <Link href="/settings" onClick={() => { sounds.click(); setOpen(false) }}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-500 hover:text-white transition-all duration-200">
+                <Settings size={16} className="text-gray-600" />
+                Settings
+              </Link>
+              <button onClick={handleSignOut}
                 className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-500 hover:text-red-400 transition-all duration-200"
                 style={{ background: 'transparent' }}
                 onMouseEnter={e => (e.currentTarget.style.background = 'rgba(239,68,68,0.08)')}
-                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-              >
+                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
                 <LogOut size={16} className="text-gray-600" />
                 Sign out
               </button>
