@@ -33,7 +33,11 @@ export async function saveMealToLog(
 ): Promise<{ mealCategory: string; totalCalories: number }> {
   const db = getDb()
   const category = mealCategory || getMealCategory()
-  const today = new Date().toISOString().split('T')[0]
+  // Use local date in UTC+5 (Pakistan/India timezone) to match user expectations
+  const now = new Date()
+  const localOffset = 5 * 60 // UTC+5 in minutes
+  const local = new Date(now.getTime() + localOffset * 60 * 1000)
+  const today = local.toISOString().split('T')[0]
 
   // Fetch existing log for today
   const { data: existing } = await db

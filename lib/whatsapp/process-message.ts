@@ -110,7 +110,7 @@ export async function processIncomingMessage(params: {
   }
 
   if (lowerText === 'status') {
-    const today = new Date().toISOString().split('T')[0]
+    const localOffset = 5 * 60; const local = new Date(Date.now() + localOffset * 60 * 1000); const today = local.toISOString().split('T')[0]
     const [{ data: log }, { data: user }] = await Promise.all([
       db.from('daily_logs').select('total_calories, total_protein, total_carbs, total_fat, water_ml').eq('user_id', userId).eq('log_date', today).maybeSingle(),
       db.from('users').select('calorie_target, full_name').eq('id', userId).single(),
@@ -136,7 +136,7 @@ export async function processIncomingMessage(params: {
   if (lowerText.startsWith('water ')) {
     const ml = parseInt(lowerText.split(' ')[1])
     if (!isNaN(ml) && ml > 0) {
-      const today = new Date().toISOString().split('T')[0]
+      const localOffset = 5 * 60; const local = new Date(Date.now() + localOffset * 60 * 1000); const today = local.toISOString().split('T')[0]
       const { data: existing } = await db.from('daily_logs').select('id, water_ml').eq('user_id', userId).eq('log_date', today).maybeSingle()
       const newWater = (existing?.water_ml || 0) + ml
 
