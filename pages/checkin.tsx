@@ -177,7 +177,28 @@ export default function CheckinPage() {
   const [foodCategory, setFoodCategory] = useState<FoodCategory>('all')
   const [foodSearch, setFoodSearch] = useState('')
 
-  useEffect(() => { loadData() }, [])
+  useEffect(() => {
+    loadData()
+    let channel: ReturnType<typeof supabase.channel> | null = null
+    async function setupRealtime() {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) return
+      channel = supabase
+        .channel('checkin-realtime')
+        .on('postgres_changes', {
+          event: '*', schema: 'public', table: 'daily_logs',
+          filter: `user_id=eq.${session.user.id}`,
+        }, (payload) => {
+          const newRow = payload.new as Record<string, unknown>
+          if (newRow.log_date === todayISO()) {
+            setLog(newRow as Partial<DailyLog>)
+          }
+        })
+        .subscribe()
+    }
+    setupRealtime()
+    return () => { if (channel) supabase.removeChannel(channel) }
+  }, [])
 
   async function loadData() {
     const { data: { session } } = await supabase.auth.getSession()
