@@ -32,7 +32,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     .from('subscriptions')
     .select('plan, status')
     .eq('user_id', userId)
-    .maybeSingle() as { data: { plan: string; status: string } | null }
+    .maybeSingle() as { data: { plan: string;
+import { todayISOServer } from '@/lib/utils' status: string } | null }
 
   const plan = (sub?.status === 'active' || sub?.status === 'trialing') ? sub.plan : 'free'
   if (plan === 'free') {
@@ -50,7 +51,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .eq('id', userId).single(),
     (db as ReturnType<typeof createClient>).from('daily_logs')
       .select('total_calories, total_protein, total_carbs, total_fat, water_ml')
-      .eq('user_id', userId).eq('log_date', new Date().toISOString().split('T')[0]).maybeSingle(),
+      .eq('user_id', userId).eq('log_date', todayISOServer()).maybeSingle(),
   ]) as { data: Record<string, unknown> | null }[]
 
   const name = (user?.full_name as string)?.split(' ')[0] || 'there'

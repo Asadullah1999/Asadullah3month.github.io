@@ -48,7 +48,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     .from('subscriptions')
     .select('plan, status')
     .eq('user_id', userId)
-    .maybeSingle() as { data: { plan: string; status: string } | null }
+    .maybeSingle() as { data: { plan: string;
+import { todayISOServer } from '@/lib/utils' status: string } | null }
 
   const plan = (sub?.status === 'active' || sub?.status === 'trialing') ? sub.plan : 'free'
   if (plan !== 'pro' && plan !== 'premium') {
@@ -180,7 +181,7 @@ RESPOND WITH ONLY THIS JSON (no markdown, no backticks, no explanation):
       carb_target: user.carb_target || 200,
       fat_target: user.fat_target || 60,
       is_active: true,
-      start_date: new Date().toISOString().split('T')[0],
+      start_date: todayISOServer(),
     })
 
     return res.status(200).json({ plan: planData, saved: true })

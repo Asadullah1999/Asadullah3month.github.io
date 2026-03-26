@@ -12,7 +12,10 @@
       "Read(//c/Users/alasa/Downloads/Asadullah3month.github.io/**)",
       "Bash(done)",
       "Bash(find pages:*)",
-      "Bash(grep -v \"^$\")"
+      "Bash(grep -v \"^$\")",
+      "Bash(find /c/Users/alasa/Downloads/Asadullah3month.github.io -maxdepth 1 -type f -name .env*)",
+      "Bash(npx next:*)",
+      "Bash(node -e \":*)"
     ]
   }
 }

@@ -82,7 +82,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .single()
 
       // Get today's log for context
-      const today = now.toISOString().split('T')[0]
+      const today = todayISOServer()
       const { data: todayLog } = await db
         .from('daily_logs')
         .select('total_calories, water_ml')

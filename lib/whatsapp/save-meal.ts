@@ -18,8 +18,23 @@ function getDb() {
   return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 }
 
+function getLocalHourIST(): number {
+  // IST = UTC+5:30
+  const offsetMinutes = Number(process.env.TIMEZONE_OFFSET_MINUTES ?? 330) // default IST (5h30m)
+  const now = new Date()
+  const localMs = now.getTime() + offsetMinutes * 60 * 1000
+  return new Date(localMs).getUTCHours()
+}
+
+function getLocalDateIST(): string {
+  const offsetMinutes = Number(process.env.TIMEZONE_OFFSET_MINUTES ?? 330)
+  const now = new Date()
+  const local = new Date(now.getTime() + offsetMinutes * 60 * 1000)
+  return local.toISOString().split('T')[0]
+}
+
 function getMealCategory(hour?: number): 'breakfast' | 'lunch' | 'dinner' | 'snacks' {
-  const h = hour ?? new Date().getUTCHours() + 5 // default UTC+5 (Pakistan)
+  const h = hour ?? getLocalHourIST()
   if (h >= 5 && h < 11) return 'breakfast'
   if (h >= 11 && h < 15) return 'lunch'
   if (h >= 15 && h < 18) return 'snacks'
@@ -33,11 +48,8 @@ export async function saveMealToLog(
 ): Promise<{ mealCategory: string; totalCalories: number }> {
   const db = getDb()
   const category = mealCategory || getMealCategory()
-  // Use local date in UTC+5 (Pakistan/India timezone) to match user expectations
-  const now = new Date()
-  const localOffset = 5 * 60 // UTC+5 in minutes
-  const local = new Date(now.getTime() + localOffset * 60 * 1000)
-  const today = local.toISOString().split('T')[0]
+  // Use local date based on TIMEZONE_OFFSET_MINUTES env var (default: 330 = IST UTC+5:30)
+  const today = getLocalDateIST()
 
   // Fetch existing log for today
   const { data: existing } = await db

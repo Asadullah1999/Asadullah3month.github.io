@@ -124,6 +124,15 @@ export function todayISO(): string {
   return `${year}-${month}-${day}`
 }
 
+// Server-safe version — uses TIMEZONE_OFFSET_MINUTES env var (default 330 = IST UTC+5:30)
+// Use this in all API routes so WhatsApp logs & website show the same date
+export function todayISOServer(): string {
+  const offsetMinutes = Number(process.env.TIMEZONE_OFFSET_MINUTES ?? 330)
+  const now = new Date()
+  const local = new Date(now.getTime() + offsetMinutes * 60 * 1000)
+  return local.toISOString().split('T')[0]
+}
+
 export function getGreeting(): string {
   const hour = new Date().getHours()
   if (hour < 12) return 'Good morning'

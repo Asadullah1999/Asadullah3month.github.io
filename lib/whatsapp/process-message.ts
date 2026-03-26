@@ -7,6 +7,7 @@ import { createClient } from '@supabase/supabase-js'
 import { getProvider } from './provider'
 import { saveMealToLog } from './save-meal'
 import { parseMealText } from './parse-meal'
+import { todayISOServer } from '@/lib/utils'
 
 function getDb() {
   return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
@@ -110,7 +111,7 @@ export async function processIncomingMessage(params: {
   }
 
   if (lowerText === 'status') {
-    const localOffset = 5 * 60; const local = new Date(Date.now() + localOffset * 60 * 1000); const today = local.toISOString().split('T')[0]
+    const today = todayISOServer()
     const [{ data: log }, { data: user }] = await Promise.all([
       db.from('daily_logs').select('total_calories, total_protein, total_carbs, total_fat, water_ml').eq('user_id', userId).eq('log_date', today).maybeSingle(),
       db.from('users').select('calorie_target, full_name').eq('id', userId).single(),
@@ -136,7 +137,7 @@ export async function processIncomingMessage(params: {
   if (lowerText.startsWith('water ')) {
     const ml = parseInt(lowerText.split(' ')[1])
     if (!isNaN(ml) && ml > 0) {
-      const localOffset = 5 * 60; const local = new Date(Date.now() + localOffset * 60 * 1000); const today = local.toISOString().split('T')[0]
+      const today = todayISOServer()
       const { data: existing } = await db.from('daily_logs').select('id, water_ml').eq('user_id', userId).eq('log_date', today).maybeSingle()
       const newWater = (existing?.water_ml || 0) + ml
 

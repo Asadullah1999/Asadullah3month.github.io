@@ -24,7 +24,8 @@ export default async function handler(
     return res.status(500).json({ error: 'AI service not configured. Please add GROQ_API_KEY.' })
   }
 
-  const { messages, userId } = req.body as { messages: Message[]; userId?: string }
+  const { messages, userId } = req.body as { messages: Message[];
+import { todayISOServer } from '@/lib/utils' userId?: string }
   if (!messages || !Array.isArray(messages) || messages.length === 0) {
     return res.status(400).json({ error: 'Messages array is required' })
   }
