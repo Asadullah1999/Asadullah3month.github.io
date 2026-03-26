@@ -3,6 +3,7 @@
 
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { createClient } from '@supabase/supabase-js'
+import { todayISOServer } from '@/lib/utils'
 
 function getDb() {
   return createClient(
@@ -48,8 +49,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     .from('subscriptions')
     .select('plan, status')
     .eq('user_id', userId)
-    .maybeSingle() as { data: { plan: string;
-import { todayISOServer } from '@/lib/utils' status: string } | null }
+    .maybeSingle() as { data: { plan: string; status: string } | null }
 
   const plan = (sub?.status === 'active' || sub?.status === 'trialing') ? sub.plan : 'free'
   if (plan !== 'pro' && plan !== 'premium') {

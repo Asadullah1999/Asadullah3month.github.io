@@ -7,6 +7,7 @@
 
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { createClient } from '@supabase/supabase-js'
+import { todayISOServer } from '@/lib/utils'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getDb(): any {
@@ -28,8 +29,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { data: users } = await db.from('users').select('id, full_name, calorie_target').in('id', userIds)
   const { data: logs } = await db.from('daily_logs').select('user_id, total_calories, water_ml, checkin_time').in('user_id', userIds).eq('log_date', today)
 
-  const payload = contacts.map((c: { user_id: string;
-import { todayISOServer } from '@/lib/utils' phone_number: string }) => {
+  const payload = contacts.map((c: { user_id: string; phone_number: string }) => {
     const user = (users || []).find((u: { id: string }) => u.id === c.user_id)
     const log  = (logs  || []).find((l: { user_id: string }) => l.user_id === c.user_id)
     const consumed = log?.total_calories || 0

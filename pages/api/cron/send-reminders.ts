@@ -6,6 +6,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { createClient } from '@supabase/supabase-js'
 import { getProvider } from '@/lib/whatsapp/provider'
 import { buildReminderMessage } from '@/lib/whatsapp/reminder-messages'
+import { todayISOServer } from '@/lib/utils'
 
 function getDb() {
   return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)

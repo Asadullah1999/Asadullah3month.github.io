@@ -169,8 +169,7 @@ Include 25-35 items covering all major food groups appropriate for the diet pref
     const parsed = JSON.parse(jsonMatch[0]) as {
       summary: string
       generated_for: string
-      items: Array<{ name: string;
-import { todayISOServer } from '@/lib/utils' quantity: string; category: GroceryItem['category'] }>
+      items: Array<{ name: string; quantity: string; category: GroceryItem['category'] }>
     }
 
     const items: GroceryItem[] = (parsed.items || []).map((item) => ({
