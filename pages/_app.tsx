@@ -4,10 +4,28 @@ import { useRouter } from 'next/router'
 import { Toaster } from 'react-hot-toast'
 import '@/styles/globals.css'
 import ChatBotWidget from '@/components/chatbot/ChatBotWidget'
+import { supabase } from '@/lib/supabase'
 
 export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter()
   const mainRef = useRef<HTMLDivElement>(null)
+
+  // Silently sync user's browser timezone to their profile on every session
+  // This keeps WhatsApp logs and website in sync for all countries
+  useEffect(() => {
+    async function syncTimezone() {
+      try {
+        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
+        if (!tz) return
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!session) return
+        await supabase.from('users').update({ timezone: tz } as never).eq('id', session.user.id)
+      } catch {
+        // silent fail — non-critical
+      }
+    }
+    syncTimezone()
+  }, [])
 
   useEffect(() => {
     const handleRouteChange = () => {

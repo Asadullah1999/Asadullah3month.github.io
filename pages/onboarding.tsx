@@ -133,6 +133,7 @@ export default function OnboardingPage() {
           ...(form.bp_status !== 'normal' ? [{ type: 'blood_pressure', status: form.bp_status }] : []),
         ],
         onboarded: true,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Kolkata',
       } as any)
       .eq('id', session.user.id)
 

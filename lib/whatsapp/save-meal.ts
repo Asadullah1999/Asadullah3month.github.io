@@ -4,6 +4,9 @@
  */
 
 import { createClient } from '@supabase/supabase-js'
+import { dateForTimezone, hourForTimezone } from '@/lib/utils'
+
+const DEFAULT_TZ = process.env.DEFAULT_TIMEZONE || 'Asia/Kolkata'
 
 type MealItem = {
   name: string
@@ -18,23 +21,8 @@ function getDb() {
   return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 }
 
-function getLocalHourIST(): number {
-  // IST = UTC+5:30
-  const offsetMinutes = Number(process.env.TIMEZONE_OFFSET_MINUTES ?? 330) // default IST (5h30m)
-  const now = new Date()
-  const localMs = now.getTime() + offsetMinutes * 60 * 1000
-  return new Date(localMs).getUTCHours()
-}
-
-function getLocalDateIST(): string {
-  const offsetMinutes = Number(process.env.TIMEZONE_OFFSET_MINUTES ?? 330)
-  const now = new Date()
-  const local = new Date(now.getTime() + offsetMinutes * 60 * 1000)
-  return local.toISOString().split('T')[0]
-}
-
-function getMealCategory(hour?: number): 'breakfast' | 'lunch' | 'dinner' | 'snacks' {
-  const h = hour ?? getLocalHourIST()
+function getMealCategory(timezone: string, hour?: number): 'breakfast' | 'lunch' | 'dinner' | 'snacks' {
+  const h = hour ?? hourForTimezone(timezone)
   if (h >= 5 && h < 11) return 'breakfast'
   if (h >= 11 && h < 15) return 'lunch'
   if (h >= 15 && h < 18) return 'snacks'
@@ -44,12 +32,13 @@ function getMealCategory(hour?: number): 'breakfast' | 'lunch' | 'dinner' | 'sna
 export async function saveMealToLog(
   userId: string,
   foods: MealItem[],
-  mealCategory?: 'breakfast' | 'lunch' | 'dinner' | 'snacks'
+  mealCategory?: 'breakfast' | 'lunch' | 'dinner' | 'snacks',
+  userTimezone?: string
 ): Promise<{ mealCategory: string; totalCalories: number }> {
   const db = getDb()
-  const category = mealCategory || getMealCategory()
-  // Use local date based on TIMEZONE_OFFSET_MINUTES env var (default: 330 = IST UTC+5:30)
-  const today = getLocalDateIST()
+  const tz = userTimezone || DEFAULT_TZ
+  const today = dateForTimezone(tz)
+  const category = mealCategory || getMealCategory(tz)
 
   // Fetch existing log for today
   const { data: existing } = await db

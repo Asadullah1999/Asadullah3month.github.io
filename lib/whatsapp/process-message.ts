@@ -7,7 +7,9 @@ import { createClient } from '@supabase/supabase-js'
 import { getProvider } from './provider'
 import { saveMealToLog } from './save-meal'
 import { parseMealText } from './parse-meal'
-import { todayISOServer } from '@/lib/utils'
+import { dateForTimezone, hourForTimezone } from '@/lib/utils'
+
+const DEFAULT_TZ = process.env.DEFAULT_TIMEZONE || 'Asia/Kolkata'
 
 function getDb() {
   return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
@@ -90,6 +92,10 @@ export async function processIncomingMessage(params: {
 
   const userId = contact.user_id
 
+  // Fetch user timezone for accurate date calculations
+  const { data: userProfile } = await db.from('users').select('timezone').eq('id', userId).maybeSingle()
+  const userTz = (userProfile as { timezone?: string } | null)?.timezone || DEFAULT_TZ
+
   // Update last_message_at
   await db.from('whatsapp_contacts').update({ last_message_at: new Date().toISOString() }).eq('user_id', userId)
 
@@ -111,7 +117,7 @@ export async function processIncomingMessage(params: {
   }
 
   if (lowerText === 'status') {
-    const today = todayISOServer()
+    const today = dateForTimezone(userTz)
     const [{ data: log }, { data: user }] = await Promise.all([
       db.from('daily_logs').select('total_calories, total_protein, total_carbs, total_fat, water_ml').eq('user_id', userId).eq('log_date', today).maybeSingle(),
       db.from('users').select('calorie_target, full_name').eq('id', userId).single(),
@@ -137,7 +143,7 @@ export async function processIncomingMessage(params: {
   if (lowerText.startsWith('water ')) {
     const ml = parseInt(lowerText.split(' ')[1])
     if (!isNaN(ml) && ml > 0) {
-      const today = todayISOServer()
+      const today = dateForTimezone(userTz)
       const { data: existing } = await db.from('daily_logs').select('id, water_ml').eq('user_id', userId).eq('log_date', today).maybeSingle()
       const newWater = (existing?.water_ml || 0) + ml
 
@@ -221,7 +227,7 @@ export async function processIncomingMessage(params: {
         return
       }
 
-      const result = await saveMealToLog(userId, foods)
+      const result = await saveMealToLog(userId, foods, undefined, userTz)
       const foodList = foods.map((f: { name: string; calories: number }) => `• ${f.name} (${f.calories} kcal)`).join('\n')
       await provider.sendText(sendPhone,
         `📸 *Logged to ${result.mealCategory}:*\n${foodList}\n\n` +
@@ -242,7 +248,7 @@ export async function processIncomingMessage(params: {
     const parseResult = await parseMealText(mealPrefixMatch[2])
 
     if (parseResult.foods.length > 0) {
-      const result = await saveMealToLog(userId, parseResult.foods, category)
+      const result = await saveMealToLog(userId, parseResult.foods, category, userTz)
       const foodList = parseResult.foods.map(f => `• ${f.name} (${f.calories} kcal)`).join('\n')
       await provider.sendText(sendPhone,
         `✅ *Logged to ${result.mealCategory}:*\n${foodList}\n\n` +
@@ -255,7 +261,7 @@ export async function processIncomingMessage(params: {
   // --- Natural language meal parsing (catch-all) ---
   const parseResult = await parseMealText(text)
   if (parseResult.foods.length > 0) {
-    const result = await saveMealToLog(userId, parseResult.foods, parseResult.mealCategory)
+    const result = await saveMealToLog(userId, parseResult.foods, parseResult.mealCategory, userTz)
     const foodList = parseResult.foods.map(f => `• ${f.name} (${f.calories} kcal)`).join('\n')
     await provider.sendText(sendPhone,
       `✅ *Logged to ${result.mealCategory}:*\n${foodList}\n\n` +

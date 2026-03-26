@@ -133,6 +133,28 @@ export function todayISOServer(): string {
   return local.toISOString().split('T')[0]
 }
 
+// Get YYYY-MM-DD date string in any IANA timezone (e.g. 'Asia/Kolkata', 'America/New_York')
+// en-CA locale always returns YYYY-MM-DD format
+export function dateForTimezone(timezone: string): string {
+  try {
+    return new Date().toLocaleDateString('en-CA', { timeZone: timezone })
+  } catch {
+    return todayISOServer() // fallback
+  }
+}
+
+// Get local hour (0-23) in any IANA timezone
+export function hourForTimezone(timezone: string): number {
+  try {
+    const h = parseInt(
+      new Date().toLocaleTimeString('en-US', { timeZone: timezone, hour: 'numeric', hour12: false })
+    )
+    return isNaN(h) ? new Date().getUTCHours() : h % 24
+  } catch {
+    return new Date().getUTCHours()
+  }
+}
+
 export function getGreeting(): string {
   const hour = new Date().getHours()
   if (hour < 12) return 'Good morning'
