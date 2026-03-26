@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import DashboardLayout from '@/components/layout/DashboardLayout'
 import PageHero from '@/components/ui/PageHero'
 import { motion } from 'framer-motion'
@@ -10,7 +10,7 @@ import { supabase } from '@/lib/supabase'
 import toast from 'react-hot-toast'
 import {
   Dumbbell, Flame, Clock, Plus, Trash2, Trophy, Zap,
-  Activity, Heart, Wind, ChevronDown, ChevronUp, TrendingUp,
+  Activity, Heart, Wind, ChevronDown, ChevronUp, TrendingUp, Search,
 } from 'lucide-react'
 import { format, subDays } from 'date-fns'
 
@@ -58,6 +58,14 @@ export default function WorkoutPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
+  const [exerciseSearch, setExerciseSearch] = useState('')
+  const [exerciseResults, setExerciseResults] = useState<Array<{
+    id: string; name: string; bodyPart: string; target: string
+    equipment: string; gifUrl: string; cal_per_min: number
+    workout_type: WorkoutType
+  }>>([])
+  const [exerciseSearchLoading, setExerciseSearchLoading] = useState(false)
+  const exerciseSearchTimer = useRef<NodeJS.Timeout | null>(null)
   const [form, setForm] = useState({
     exercise_name: '',
     workout_type: 'strength' as WorkoutType,
@@ -71,6 +79,21 @@ export default function WorkoutPage() {
       if (data.user) { setUserId(data.user.id); loadLogs(data.user.id) }
     })
   }, [])
+
+  // Debounced ExerciseDB search
+  useEffect(() => {
+    if (exerciseSearchTimer.current) clearTimeout(exerciseSearchTimer.current)
+    if (exerciseSearch.length < 2) { setExerciseResults([]); setExerciseSearchLoading(false); return }
+    setExerciseSearchLoading(true)
+    exerciseSearchTimer.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/exercise/search?q=${encodeURIComponent(exerciseSearch)}&limit=8`)
+        const data = await res.json()
+        setExerciseResults(Array.isArray(data) ? data : [])
+      } catch { setExerciseResults([]) } finally { setExerciseSearchLoading(false) }
+    }, 350)
+    return () => { if (exerciseSearchTimer.current) clearTimeout(exerciseSearchTimer.current) }
+  }, [exerciseSearch])
 
   async function loadLogs(uid: string) {
     setLoading(true)
@@ -96,6 +119,20 @@ export default function WorkoutPage() {
       calories_burned: (dur * ex.cal_per_min).toString(),
       notes: '',
     })
+    setShowForm(true)
+  }
+
+  function quickAddFromApi(ex: typeof exerciseResults[0]) {
+    const dur = 30
+    setForm({
+      exercise_name: ex.name,
+      workout_type: ex.workout_type,
+      duration_min: dur.toString(),
+      calories_burned: (dur * ex.cal_per_min).toString(),
+      notes: `Target: ${ex.target} · Equipment: ${ex.equipment}`,
+    })
+    setExerciseSearch('')
+    setExerciseResults([])
     setShowForm(true)
   }
 
@@ -177,6 +214,54 @@ export default function WorkoutPage() {
               <Plus size={13} /> Custom
             </button>
           </div>
+
+          {/* ExerciseDB live search */}
+          <div className="relative mb-4">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600" />
+            <input
+              type="text"
+              value={exerciseSearch}
+              onChange={e => setExerciseSearch(e.target.value)}
+              placeholder="Search 1,300+ exercises (e.g. deadlift, pull up)..."
+              className="w-full pl-9 pr-3 py-2 rounded-lg text-sm text-white placeholder:text-gray-600 focus:outline-none"
+              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
+            />
+          </div>
+          {(exerciseSearchLoading || exerciseResults.length > 0) && exerciseSearch.length >= 2 && (
+            <div className="mb-4">
+              <p className="text-xs font-bold text-gray-500 mb-2 flex items-center gap-1.5 uppercase tracking-wider">
+                <Search size={11} className="text-red-400" />
+                {exerciseSearchLoading ? 'Searching ExerciseDB…' : `ExerciseDB — ${exerciseResults.length} results`}
+              </p>
+              {exerciseSearchLoading ? (
+                <div className="flex gap-2">
+                  {[1,2,3].map(i => (
+                    <div key={i} className="h-10 w-36 rounded-xl animate-pulse" style={{ background: 'rgba(255,255,255,0.06)' }} />
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {exerciseResults.map(ex => {
+                    const cfg = TYPE_CONFIG[ex.workout_type]
+                    return (
+                      <button key={ex.id} onClick={() => quickAddFromApi(ex)}
+                        className="flex flex-col px-3 py-2 rounded-xl text-xs font-semibold transition-all duration-200 text-left"
+                        style={{ background: cfg.bg, border: `1px solid ${cfg.border}`, color: cfg.color }}
+                        onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = `0 6px 20px ${cfg.bg}` }}
+                        onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none' }}>
+                        <span className="font-bold text-white/90">{ex.name}</span>
+                        <span className="opacity-60 capitalize">{ex.target} · {ex.equipment}</span>
+                      </button>
+                    )
+                  })}
+                  {exerciseResults.length === 0 && (
+                    <p className="text-xs text-gray-600 py-2">No exercises found. Try a different search.</p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="flex flex-wrap gap-2">
             {QUICK_EXERCISES.map(ex => {
               const cfg = TYPE_CONFIG[ex.type]

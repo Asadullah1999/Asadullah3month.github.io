@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import DashboardLayout from '@/components/layout/DashboardLayout'
 import PageHero from '@/components/ui/PageHero'
 import Button from '@/components/ui/Button'
@@ -176,6 +176,12 @@ export default function CheckinPage() {
   const [saved, setSaved] = useState(false)
   const [foodCategory, setFoodCategory] = useState<FoodCategory>('all')
   const [foodSearch, setFoodSearch] = useState('')
+  const [apiResults, setApiResults] = useState<Array<{
+    id: string; name: string; brand: string
+    servings: Array<{ serving_description: string; calories: number; protein: number; carbs: number; fat: number }>
+  }>>([])
+  const [apiLoading, setApiLoading] = useState(false)
+  const searchTimer = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     loadData()
@@ -199,6 +205,21 @@ export default function CheckinPage() {
     setupRealtime()
     return () => { if (channel) supabase.removeChannel(channel) }
   }, [])
+
+  // Debounced FatSecret food search
+  useEffect(() => {
+    if (searchTimer.current) clearTimeout(searchTimer.current)
+    if (foodSearch.length < 2) { setApiResults([]); setApiLoading(false); return }
+    setApiLoading(true)
+    searchTimer.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/food/search?q=${encodeURIComponent(foodSearch)}&max_results=8`)
+        const data = await res.json()
+        setApiResults(Array.isArray(data) ? data : [])
+      } catch { setApiResults([]) } finally { setApiLoading(false) }
+    }, 350)
+    return () => { if (searchTimer.current) clearTimeout(searchTimer.current) }
+  }, [foodSearch])
 
   async function loadData() {
     const { data: { session } } = await supabase.auth.getSession()
@@ -464,6 +485,51 @@ export default function CheckinPage() {
                   style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
                 />
               </div>
+
+              {/* FatSecret live results */}
+              {(apiLoading || apiResults.length > 0) && foodSearch.length >= 2 && (
+                <div className="mb-4">
+                  <p className="text-xs font-bold text-gray-500 mb-2 flex items-center gap-1.5 uppercase tracking-wider">
+                    <Search size={11} className="text-emerald-400" />
+                    {apiLoading ? 'Searching FatSecret…' : `FatSecret — ${apiResults.length} results`}
+                  </p>
+                  {apiLoading ? (
+                    <div className="flex gap-2">
+                      {[1,2,3].map(i => (
+                        <div key={i} className="h-8 w-28 rounded-lg animate-pulse" style={{ background: 'rgba(255,255,255,0.06)' }} />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="flex flex-wrap gap-2 max-h-52 overflow-y-auto pr-1" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.1) transparent' }}>
+                      {apiResults.map(food => {
+                        const serving = food.servings[0]
+                        if (!serving) return null
+                        const item: MealItem = {
+                          name: food.name + (food.brand ? ` (${food.brand})` : ''),
+                          calories: serving.calories,
+                          protein: serving.protein,
+                          carbs: serving.carbs,
+                          fat: serving.fat,
+                          quantity: serving.serving_description,
+                        }
+                        return (
+                          <button key={food.id} onClick={() => quickAdd(activeSection, item)}
+                            className="px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 text-left"
+                            style={{ background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.2)', color: '#6ee7b7' }}
+                            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(16,185,129,0.15)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(16,185,129,0.2)' }}
+                            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(16,185,129,0.06)'; e.currentTarget.style.boxShadow = 'none' }}>
+                            <span className="block font-semibold text-white/90 truncate max-w-[160px]">{food.name}</span>
+                            <span className="opacity-60">{serving.calories} kcal · {serving.serving_description}</span>
+                          </button>
+                        )
+                      })}
+                      {apiResults.length === 0 && !apiLoading && (
+                        <p className="text-xs text-gray-600 py-2">No results from FatSecret. Try a different search.</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Category tabs */}
               <div className="flex gap-1.5 overflow-x-auto pb-2 mb-3">
