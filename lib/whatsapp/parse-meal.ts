@@ -1,7 +1,6 @@
 /**
  * Parse natural language meal descriptions into structured MealItem[]
- * Primary: Nutritionix Natural Language API (accurate, real data)
- * Fallback: Groq LLM (used when Nutritionix is unavailable or returns nothing)
+ * Uses Groq LLM for parsing
  */
 
 type MealItem = {
@@ -35,50 +34,6 @@ function detectMealCategory(text: string): 'breakfast' | 'lunch' | 'dinner' | 's
   return undefined
 }
 
-async function parseWithNutritionix(text: string): Promise<MealItem[]> {
-  const appId = process.env.NUTRITIONIX_APP_ID
-  const appKey = process.env.NUTRITIONIX_APP_KEY
-  if (!appId || !appKey) return []
-
-  try {
-    const res = await fetch('https://trackapi.nutritionix.com/v2/natural/nutrients', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-app-id': appId,
-        'x-app-key': appKey,
-      },
-      body: JSON.stringify({ query: text }),
-    })
-
-    if (!res.ok) return []
-
-    const data = await res.json() as {
-      foods?: Array<{
-        food_name: string
-        serving_qty: number
-        serving_unit: string
-        nf_calories: number
-        nf_protein: number
-        nf_total_carbohydrate: number
-        nf_total_fat: number
-      }>
-    }
-
-    if (!data.foods?.length) return []
-
-    return data.foods.map(f => ({
-      name: f.food_name,
-      quantity: `${f.serving_qty} ${f.serving_unit}`,
-      calories: Math.round(f.nf_calories || 0),
-      protein: Math.round((f.nf_protein || 0) * 10) / 10,
-      carbs: Math.round((f.nf_total_carbohydrate || 0) * 10) / 10,
-      fat: Math.round((f.nf_total_fat || 0) * 10) / 10,
-    }))
-  } catch {
-    return []
-  }
-}
 
 async function parseWithGroq(text: string): Promise<MealItem[]> {
   const apiKey = process.env.GROQ_API_KEY
@@ -139,14 +94,6 @@ Rules:
 
 export async function parseMealText(text: string): Promise<ParseResult> {
   const mealCategory = detectMealCategory(text)
-
-  // Try Nutritionix first (real data, more accurate)
-  let foods = await parseWithNutritionix(text)
-
-  // Fall back to Groq if Nutritionix returned nothing
-  if (foods.length === 0) {
-    foods = await parseWithGroq(text)
-  }
-
+  const foods = await parseWithGroq(text)
   return { foods, mealCategory }
 }
